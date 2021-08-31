@@ -74,13 +74,20 @@ class Controller(Node):
         
     def app_on_select(self,num):
         '''
-        로직 2. 특정 가전 제품 ON
+        로직 2. 특정 가전 제품 ON - 완료
         '''
+
+        self.app_control_msg.data[num]=1
+        self.app_control_pub.publish(self.app_control_msg)
+        
 
     def app_off_select(self,num):
         '''
-        로직 3. 특정 가전 제품 OFF
+        로직 3. 특정 가전 제품 OFF - 완료
         '''
+        
+        self.app_control_msg.data[num]=2
+        self.app_control_pub.publish(self.app_control_msg)
 
     def turtlebot_go(self) :
         self.cmd_msg.linear.x=0.3
@@ -88,18 +95,21 @@ class Controller(Node):
 
     def turtlebot_stop(self) :
         '''
-        로직 4. 터틀봇 정지
+        로직 4. 터틀봇 정지 - 완료
         '''
+        self.cmd_msg.linear.x=0.0
 
     def turtlebot_cw_rot(self) :
         '''
         로직 5. 터틀봇 시계방향 회전
         '''
+        self.cmd_msg.angular.z=1.0
 
     def turtlebot_cww_rot(self) :
         '''
         로직 6. 터틀봇 반시계방향 회전
         '''
+        self.cmd_msg.angular.z=-1.0
 
 
     def timer_callback(self):
@@ -110,7 +120,7 @@ class Controller(Node):
         환경 정보 : 날짜, 시간, 온도, 날씨 출력
         가전 제품 : 가전상태 출력        
         '''
-
+        
         ## IOT(가전) 제어 함수
         # self.app_all_on()
         # self.app_all_off()
@@ -122,7 +132,7 @@ class Controller(Node):
         self.turtlebot_go()
         # self.turtlebot_stop()
         # self.turtlebot_cw_rot()
-        # self.turtlebot_ccw_rot()
+        # self.turtlebot_cww_rot()
 
         self.cmd_publisher.publish(self.cmd_msg)
 
