@@ -4,3 +4,24 @@
   - https://drive.google.com/drive/folders/1rp54qL31ZIoHet7A9BlvpoDCCdGVsvLK?usp=sharing
 
 (위 경로에 위치한 프로그램 및 문서는 SSAFY 과정 내에서만 사용할 수 있으며 무단 복제 및 반출, 배포를 금합니다.)
+
+
+
+
+
+##Req 1
+
+#Publisher
+
+![image-20210830153945555](C:\Users\multicampus\AppData\Roaming\Typora\typora-user-images\image-20210830153945555.png)
+
+#Subscriber
+
+![image-20210830153926246](C:\Users\multicampus\AppData\Roaming\Typora\typora-user-images\image-20210830153926246.png)
+
+
+
+##Req 2
+
+![image-20210830200723439](C:\Users\multicampus\AppData\Roaming\Typora\typora-user-images\image-20210830200723439.png)
+
