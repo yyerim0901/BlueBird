@@ -30,13 +30,12 @@ class IMGPublisher(Node):
 
     def __init__(self):
         super().__init__(node_name='IMGPublisher')
-        print("udp_to_cam")
         self.publisher_ = self.create_publisher(CompressedImage, '/image_jpeg/compressed', 10)
         self.udp_parser = UDP_CAM_Parser(self.publisher_, ip=params_cam_0["localIP"], port=params_cam_0["localPort"], params_cam=params_cam_0)        
-        print(self.publisher_)
-        print(self.udp_parser)
+
 
 def main(args=None):
+
     rclpy.init(args=args)
     image_parser = IMGPublisher()
     rclpy.spin(image_parser)    
@@ -45,4 +44,5 @@ def main(args=None):
 
 
 if __name__ == '__main__':
+
     main()

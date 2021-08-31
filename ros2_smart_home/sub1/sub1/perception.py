@@ -41,7 +41,7 @@ class IMGParser(Node):
         # 로직 2. 카메라 콜백함수에서 이미지를 클래스 내 변수로 저장
         ## msg.data 는 bytes로 되어 있고 이를 uint8로 바꾼 다음
         ## cv2 내의 이미지 디코딩 함수로 bgr 이미지로 바꾸세요.        
-        print("hello1")
+
         np_arr = np.frombuffer(msg.data, np.uint8)
         img_bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
         '''

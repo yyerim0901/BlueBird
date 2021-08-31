@@ -23,13 +23,7 @@ def generate_launch_description():
             package='ssafy_bridge',
             node_executable='udp_to_laser',
             node_name='udp_to_laser'
-        ),
-
-        Node(
-            package='ssafy_bridge',
-            node_executable='cam_viewer',
-            node_name='cam_viewer'
-        ) 
+        )
     ])
 
 
