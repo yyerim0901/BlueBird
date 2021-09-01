@@ -62,7 +62,7 @@ class Controller(Node):
         self.app_status_msg=msg  
 
     def app_all_on(self):
-        print("on")
+        
         for i in range(17):
             self.app_control_msg.data[i]=1
         self.app_control_pub.publish(self.app_control_msg)
@@ -120,10 +120,20 @@ class Controller(Node):
         환경 정보 : 날짜, 시간, 온도, 날씨 출력
         가전 제품 : 가전상태 출력        
         '''
+        # print("\
+        #     current_linear vel : {0}, current_angular_vel : {1}, battery : {2}, supply_status : {3}"
+        #     .format(\
+        #         self.turtlebot_status_msg.twist.linear.x,\
+        #         self.turtlebot_status_msg.twist.angular.z,\
+        #         self.turtlebot_status_msg.battery_percentage,\
+        #         self.turtlebot_status_msg.power_supply_status))
+        
+        print("app status : {0}".format(self.app_control_msg.data))
+
         
         ## IOT(가전) 제어 함수
-        self.app_all_on()
-        # self.app_all_off()
+        # self.app_all_on()
+        self.app_all_off()
         # self.app_select_on(12)
         # self.app_select_off(12)
 

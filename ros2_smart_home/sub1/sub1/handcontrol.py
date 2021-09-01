@@ -50,29 +50,38 @@ class Handcontrol(Node):
                 self.hand_control_pick_up()   
             if menu=='3' :
                 self.hand_control_put_down()
-
+            
 
     def hand_control_status(self):
         '''
         로직 3. Hand Control Status 출력
         '''
+        print("Control_mode : {0} , put_distance : {1} put_height : {2}".format(self.hand_control_msg.control_mode, self.hand_control_msg.put_distance, self.hand_control_msg.put_height))
+        
+        self.hand_control.publish(self.hand_control_msg)
 
     def hand_control_preview(self):
         '''
         로직 4. Hand Control - Preview
         '''
+        self.hand_control_msg.control_mode = 1
 
+        
     def hand_control_pick_up(self):
         '''
         로직 5. Hand Control - Pick up        
         '''
-        
-        
+        self.hand_control_msg.control_mode = 2
+        while  self.turtlebot_status_msg.can_lift:
+            self.hand_control.publish(self.hand_control_msg)   
+
     def hand_control_put_down(self):        
         '''
         로직 6. Hand Control - Put down
         '''
-
+        self.hand_control_msg.control_mode = 3
+        while  self.turtlebot_status_msg.can_put:
+            self.hand_control.publish(self.hand_control_msg)
 
     def turtlebot_status_cb(self,msg):
         self.is_turtlebot_status=True

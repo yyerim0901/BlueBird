@@ -9,24 +9,36 @@
 
 
 
-Req 1
+**Req 1**
 
-Publisher
-
-![image-20210830153945555](./images/image-20210830153945555.png)
-
-Subscriber
-
-![image-20210830153926246](./images/image-20210830153926246.png)
+| publisher<br />![image-20210830153945555](./images/image-20210830153945555.png) |
+| ------------------------------------------------------------ |
+| **subscriber**<br />![image-20210830153926246](./images/image-20210830153926246.png)                                            **** |
+| **rqt result**<br />![req1_3](./images/req1_3.PNG)           |
+| **Moving in the auto mode**<br />![image-20210831200725977](./images/req1_4.png) |
 
 
 
-Req 2
-
-![image-20210830200723439](./images/image-20210830200723439.png)
 
 
+**Req 2**
 
-Req 3
+| **시뮬레이션화면**<br />![image-20210830200723439](./images/image-20210830200723439.png) |
+| ------------------------------------------------------------ |
+| **앞으로 전진**<br />![image-20210831195510458](./images/image-20210831195510458.png)<br /> |
+| **회전**<br />![image-20210831195644838](./images/image-20210831195644838.png) |
+| **가전기기 상태**<br />![image-20210831201516396](./images/req2_1.png) |
 
-![req3](./images/req3.PNG)
+
+
+**Req 3**
+
+gray scale, scaling, h = 1/2 * h, w =  1/2 * w
+
+| **이미지 변환 후 화면**<br />![req3](./images/req3.PNG) |
+| ------------------------------------------------------- |
+
+
+
+Req 4
+
