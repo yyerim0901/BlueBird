@@ -27,10 +27,10 @@
 | ------------------------------------------------------------ |
 | **앞으로 전진**<br />![image-20210831195510458](./images/image-20210831195510458.png)<br /> |
 | **회전**<br />![image-20210831195644838](./images/image-20210831195644838.png) |
-| **Moving in the auto mode**<br />![req1_4](./images/req1_4.png) |
-| **가전 기기 제어 - all on **<br />![req2_1](./images/req2_1.png) |
+| **Moving in the auto mode**<br />![req1_4](./images/req1_4.PNG) |
+| **가전 기기 제어 - all on **<br />![req2_1](./images/req2_1.PNG) |
 | ![req2_allon](./images/req2_allon.PNG)                       |
-| **가전 기기 제어 - all off**<br />![req2_1](./images/req2_2.png) |
+| **가전 기기 제어 - all off**<br />![req2_1](./images/req2_2.PNG) |
 | ![req2_alloff](./images/req2_alloff.PNG)                     |
 | **환경 메시지 수신**<br />![req2_weather](./images/req2_weather.PNG) |
 
@@ -65,7 +65,7 @@ size scaling: h = 1/2 * h, w =  1/2 * w
 
 | **로봇 위치 추정 테스트**<br />![req5_1](./images/req5_1.PNG) |
 | ------------------------------------------------------------ |
-| **테스트 결과**<br />![req5_2](./images/req5_2.png)          |
+| **테스트 결과**<br />![req5_2](./images/req5_2.PNG)          |
 | **한 바퀴 돌아서 제자리 온 경우 rviz2 화면**<br />![req5_3](./images/req5_3.PNG) |
 
 
@@ -81,5 +81,4 @@ size scaling: h = 1/2 * h, w =  1/2 * w
 | **Local path가 잘 적용되는지 확인**<br />![req5_1_local_path](./images/req5_1_local_path.PNG)<br />**이동 시 local path가 잘 적용되는 것 확인**<br />![req5_1_local_path_move](./images/req5_1_local_path_move.PNG) |
 | ------------------------------------------------------------ |
 | **Auto mode에서 자동으로 이동 확인**<br />![req5_ing](./images/req5_ing.PNG)<br />auto mode에서 속도가 나고 global path에서 저장해 놓았던 경로로 이동하는 것 확인<br /><br />**도착 확인**<br />![req5_finish](./images/req5_finish.PNG) |
-
 
