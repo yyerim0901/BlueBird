@@ -37,7 +37,7 @@ class makePath(Node):
         '''
         로직 2. 저장할 경로 및 텍스트파일 이름을 정하고, 쓰기 모드로 열기 - 완료
         '''
-        full_path = 'C:\\Users\\multicampus\\Desktop\\test.txt'
+        full_path = 'C:\\Users\\multicampus\\Desktop\\test_loop.txt'
         self.f = open(full_path,'w')
         
         

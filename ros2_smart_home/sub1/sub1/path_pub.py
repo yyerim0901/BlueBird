@@ -27,7 +27,7 @@ class pathPub(Node):
 
     def __init__(self):
         super().__init__('path_pub')
-
+        self.prev_i = 0 
         # 로직 1. publisher, subscriber 만들기
         self.global_path_pub = self.create_publisher(Path, 'global_path', 10)
         self.local_path_pub = self.create_publisher(Path, 'local_path', 10)
@@ -46,7 +46,7 @@ class pathPub(Node):
         로직 2. 만들어 놓은 경로 데이터를 읽기 모드로 open
         '''
         # globl path는 받은 메모장 파일에서 불러와서 찍는다.
-        full_path= 'C:\\Users\\multicampus\\Desktop\\test.txt'
+        full_path= 'C:\\Users\\multicampus\\Desktop\\test_loop.txt'
         self.f= open(full_path, 'r')
 
         
@@ -94,12 +94,20 @@ class pathPub(Node):
             '''
             # global 패스위의 점중에 로봇과 가장 가까운점들을 뽑아오는 것
             min_dis = float('inf')
+            
             for i,waypoint in enumerate(self.global_path_msg.poses) :
+                if i < self.prev_i :
+                    continue
 
+                if i > self.prev_i + 5 : 
+                    break
                 distance = sqrt(pow(x-waypoint.pose.position.x,2)+pow(y-waypoint.pose.position.y,2))
                 if distance < min_dis :
                     min_dis = distance
+                    self.prev_i = i
                     current_waypoint = i
+                    print(i)
+                
             
             
 

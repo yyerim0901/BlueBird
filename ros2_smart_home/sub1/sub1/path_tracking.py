@@ -135,8 +135,8 @@ class followTheCarrot(Node):
                     로직 7. 선속도, 각속도 정하기 - 완료
                     '''
 
-                    out_vel = 1.0
-                    out_rad_vel= theta * 2
+                    out_vel = 0.7
+                    out_rad_vel= theta * 1.3
 
                                
 
