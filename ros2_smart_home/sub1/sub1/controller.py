@@ -101,13 +101,13 @@ class Controller(Node):
 
     def turtlebot_cw_rot(self) :
         '''
-        로직 5. 터틀봇 시계방향 회전
+        로직 5. 터틀봇 시계방향 회전 - 완료
         '''
         self.cmd_msg.angular.z=1.0
 
     def turtlebot_cww_rot(self) :
         '''
-        로직 6. 터틀봇 반시계방향 회전
+        로직 6. 터틀봇 반시계방향 회전 - 완료
         '''
         self.cmd_msg.angular.z=-1.0
 
@@ -116,10 +116,11 @@ class Controller(Node):
 
         '''
         로직1. 수신 데이터 출력
-        터틀봇 상태 : 현재 선솏도, 현재 각속도, 배터리 상태, 충전 상태 출력
+        터틀봇 상태 : 현재 선솏도, 현재 각속도, 배터리 상태, 충전 상태 출력(1)
         환경 정보 : 날짜, 시간, 온도, 날씨 출력
         가전 제품 : 가전상태 출력        
         '''
+        # (1)
         # print("\
         #     current_linear vel : {0}, current_angular_vel : {1}, battery : {2}, supply_status : {3}"
         #     .format(\
@@ -128,7 +129,11 @@ class Controller(Node):
         #         self.turtlebot_status_msg.battery_percentage,\
         #         self.turtlebot_status_msg.power_supply_status))
         
-        print("app status : {0}".format(self.app_control_msg.data))
+        # (2)
+        print("date : {},{}, time : {}, temp : {}, weather : {}".format(self.envir_status_msg.month,self.envir_status_msg.day, self.envir_status_msg.hour, self.envir_status_msg.temperature, self.envir_status_msg.weather))
+
+        # (3)
+        # print("app status : {0}".format(self.app_control_msg.data))
 
         
         ## IOT(가전) 제어 함수

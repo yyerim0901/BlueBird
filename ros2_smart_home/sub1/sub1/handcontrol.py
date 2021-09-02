@@ -64,7 +64,7 @@ class Handcontrol(Node):
 
     def hand_control_status(self):
         '''
-        로직 3. Hand Control Status 출력 -완료
+        로직 3. Hand Control Status 출력 - 완료
         '''
         print('can_lift : ',self.turtlebot_status_msg.can_lift, ', can_put : ', self.turtlebot_status_msg.can_put, ', can_use_hand : ', self.turtlebot_status_msg.can_use_hand,']') 
         print("Control_mode : {0} , put_distance : {1} put_height : {2}".format(self.hand_control_msg.control_mode, self.hand_control_msg.put_distance, self.hand_control_msg.put_height))
@@ -73,7 +73,7 @@ class Handcontrol(Node):
 
     def hand_control_preview(self):
         '''
-        로직 4. Hand Control - Preview -완료
+        로직 4. Hand Control - Preview - 완료
         '''
         self.hand_control_msg.control_mode = 1
 
@@ -83,7 +83,7 @@ class Handcontrol(Node):
         
     def hand_control_pick_up(self):
         '''
-        로직 5. Hand Control - Pick up      -완료   
+        로직 5. Hand Control - Pick up - 완료   
         '''
         
         self.hand_control_msg.control_mode = 2

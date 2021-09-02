@@ -73,7 +73,7 @@ class odom(Node):
     def imu_callback(self,msg):
         # pass : # breck 블럭 탈출의 반대 의미. 미구현 블럭에서 들여쓰기 문제 해결할 때 쓰는것 -> 걍 무시
         '''
-        로직 3. IMU 에서 받은 quaternion을 euler angle로 변환해서 사용
+        로직 3. IMU 에서 받은 quaternion을 euler angle로 변환해서 사용  - 완료
         '''
         if self.is_imu ==False :    
             self.is_imu=True
@@ -92,7 +92,7 @@ class odom(Node):
 
     def listener_callback(self, msg):
         #print('linear_vel : {}  angular_vel : {}'.format(msg.twist.linear.x,-msg.twist.angular.z))
-        print(self.x, self.y)
+        # print(self.x, self.y)
         if self.is_imu ==True:
             if self.is_status == False :
                 self.is_status=True
@@ -106,7 +106,7 @@ class odom(Node):
                 linear_x=msg.twist.linear.x
                 angular_z=-msg.twist.angular.z
                 '''
-                로직 4. 로봇 위치 추정
+                로직 4. 로봇 위치 추정  - 완료
                 (테스트) linear_x = 1, self.theta = 1.5707(rad), self.period = 1 일 때
                 self.x=0, self.y=1 이 나와야 합니다. 로봇의 헤딩이 90도 돌아가 있는
                 상태에서 선속도를 가진다는 것은 x축방향이 아니라 y축방향으로 이동한다는 뜻입니다. 
@@ -124,7 +124,7 @@ class odom(Node):
                 self.laser_transform.header.stamp =rclpy.clock.Clock().now().to_msg()
                 
                 '''
-                로직 5. 추정한 로봇 위치를 메시지에 담아 publish, broadcast
+                로직 5. 추정한 로봇 위치를 메시지에 담아 publish, broadcast  - 완료
                 '''
                 q = Quaternion.from_euler(0,0,self.theta)
                 
