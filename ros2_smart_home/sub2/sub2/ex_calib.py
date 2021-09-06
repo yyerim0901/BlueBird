@@ -11,12 +11,12 @@ params_lidar = {
     "localIP": "127.0.0.1",
     "localPort": 2368,
     "Block_SIZE": int(1206),
-    "X": 0, # meter
-    "Y": 0,
-    "Z": 0.4+0.1,
-    "YAW": 0, # deg
-    "PITCH": 0,
-    "ROLL": 0
+    "X": 0.0, # meter
+    "Y": 0.0,
+    "Z": 0.6,
+    "YAW": 0.0, # deg
+    "PITCH": 0.0,
+    "ROLL": 0.0
 }
 
 
@@ -27,12 +27,12 @@ params_cam = {
     "localIP": "127.0.0.1",
     "localPort": 1232,
     "Block_SIZE": int(65000),
-    "X": 0., # meter
-    "Y": 0,
-    "Z":  0.8,
-    "YAW": 0, # deg
+    "X": 0.0, # meter
+    "Y": 0.0,
+    "Z":  1.0,
+    "YAW": 0.0, # deg
     "PITCH": 0.0,
-    "ROLL": 0
+    "ROLL": 0.0
 }
 
 # ex 노드 설명
@@ -106,41 +106,34 @@ def transformMTX_lidar2cam(params_lidar, params_cam):
 
     """
     로직 1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
-    라이다의 포인트와 카메라의 이미지는 각각 /scan 토픽과 /image_jpeg/compressed에서 나오기 때문에 subscriber를 만들어 준다.
-
-    lidar_yaw, lidar_pitch, lidar_roll =
-    cam_yaw, cam_pitch, cam_roll =
-    
-    lidar_pos = 
-    cam_pos = 
 
     """
+    lidar_yaw, lidar_pitch, lidar_roll = params_lidar["YAW"], params_lidar["PITCH"], params_lidar["ROLL"]
+    cam_yaw, cam_pitch, cam_roll = params_cam["YAW"], params_cam["PITCH"], params_cam["ROLL"]
+    
+    lidar_pos = [params_lidar["X"], params_lidar["Y"], params_lidar["Z"]]
+    cam_pos = [params_cam["X"], params_cam["Y"], params_cam["Z"]]
+
 
     """
 
     로직 2. 라이다에서 카메라 까지 변환하는 translation 행렬을 정의
-    LIDAR2CAMTransform(params_cam, params_lidar) 클래스를 가지고 좌표변환 역할을 하는 self.12c_trans를 정의
     
-    Tmtx = 
-
     """
+    Tmtx = translationMtx(lidar_pos[0] - cam_pos[0], lidar_pos[1] - cam_pos[1], lidar_pos[2] - cam_pos[2])
 
     """
     로직 3. 카메라의 자세로 맞춰주는 rotation 행렬을 정의
-    카메라 subscriber안에 들어가는 콜백함수를 완성시키기
-    compressedImage 안에 data에서 np.frombuffer와 cv2의 이미지 디코더를 가지고 msg.data를 이미지 어레이로 만들 수 있다.
-
-    Rmtx = 
 
     """
+    Rmtx = rotationMtx(math.pi/2, 0, math.pi/2)
 
     """
 
     로직 4. 위의 두 행렬을 가지고 최종 라이다-카메라 변환 행렬을 정의
-    RT = 
-
     """
-
+    RT = np.matmul(Rmtx, Tmtx)
+    
     """
     테스트
 
@@ -258,7 +251,7 @@ class LIDAR2CAMTransform:
         4. normalizing plane 상의 라이다 포인트들에 proj_mtx를 곱해 픽셀 좌표값 계산.
         5. 이미지 프레임 밖을 벗어나는 포인트들을 crop.
         """
-        
+
         # 로직 1. Params에서 필요한 파라메터들과 RT 행렬, projection 행렬 등을 정의
         self.width = params_cam["WIDTH"]
         self.height = params_cam["HEIGHT"]
