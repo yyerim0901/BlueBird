@@ -29,7 +29,7 @@ class a_star(Node):
         super().__init__('a_Star')
         # 로직 1. publisher, subscriber 만들기
         self.map_sub = self.create_subscription(OccupancyGrid,'map',self.map_callback,1)
-        self.odom_sub = self.create_subscription(Odometry,'odom',self.odom_callback,1)
+        self.odom_sub = self.create_subscription(Odometry,'odom',self.odom_callback,1) #로봇의 위치를 받아서 출발지로 하기 위하여 odom받음
         self.goal_sub = self.create_subscription(PoseStamped,'goal_pose',self.goal_callback,1)
         self.a_star_pub= self.create_publisher(Path, 'global_path', 1)
         
@@ -42,7 +42,8 @@ class a_star(Node):
 
 
         # 로직 2. 파라미터 설정
-        self.goal = [184,224] 
+        self.goal = [184,224] #초기설정 : 에어컨 앞, 목적지를 찍지 않으면 이 곳이 목적지
+        #맵에 대한 파라미터, 위치 x y를 맵 cell에 매칭할 때 혹인 그 반대로 맵 cell을 위치 x y로 바꿀 때 사용할 파라미터
         self.map_size_x=350
         self.map_size_y=350
         self.map_resolution=0.05
@@ -50,16 +51,19 @@ class a_star(Node):
         self.map_offset_y=-4-8.75
     
         self.GRIDSIZE=350 
- 
+        
+        # 주변의 인덱스를 탐색할 때 사용하기 위해 만든 변수
         self.dx = [-1,0,0,1,-1,-1,1,1]
         self.dy = [0,1,-1,0,-1,1,-1,1]
         self.dCost = [1,1,1,1,1.414,1.414,1.414,1.414]
-       
+        # 각 셀 1칸 = 1, 대각선 = 1.414
+
 
     def grid_update(self):
         self.is_grid_update=True
         '''
         로직 3. 맵 데이터 행렬로 바꾸기
+        메시지를 통해 받은 맵은 1차원 배열로 들어오기 때문에 좀 더 직관적으로 사용 위해 350*350인 2차원행렬로 바꿔준다.
         map_to_grid=
         self.grid=
         '''
@@ -85,6 +89,8 @@ class a_star(Node):
         y = 0
         '''
         로직 5. map의 grid cell을 위치(x,y)로 변환
+        최단경로 탐색결과는 맵의 cell로 얻어지기 때문에 전역경로로 만들 때는 위치 x y로 변환해서 사용해야한다.
+        변환에는 map_offset, map_size, map_resolution이용
         (테스트) grid cell이 (175,175)라면 맵의 중앙에 위치하게 된다. 따라서 pose로 변환하게 되면 맵의 중앙인 (-8,-4)가 된다.
         grid cell이 (350,350)라면 맵의 제일 끝 좌측 상단에 위치하게 된다. 따라서 pose로 변환하게 되면 맵의 좌측 상단인 (0.75,6.25)가 된다.
 
@@ -110,6 +116,9 @@ class a_star(Node):
         if msg.header.frame_id=='map':
             '''
             로직 6. goal_pose 메시지 수신하여 목표 위치 설정
+            목적지를 받았을 때 호출되는 함수
+            다른 frame에서 찍으면 좌표계가 다르기 때문에 rviz의 fixed_frame이 'map'인 상태에서 목적지를 입력했을 때만 사용 가능
+            x y 좌표를 받아서 pose_to_grid_cell 함수로 목적지를 cell 단위로 바꿔준다.
             goal_x=
             goal_y=
             goal_cell=
@@ -159,7 +168,10 @@ class a_star(Node):
         found = False
         '''
         로직 7. grid 기반 최단경로 탐색
-        
+        deque를 이용해 탐색할 노드를 하나씩 append해서 사용하며 Q에 더 이상 탐색할 노드가 없으면 
+        while문을 빠져나온다.
+        그게 아니면 Q의 popleft()를 이용해 탐색할 노드를 선택하고 dx, dy를 이용해 next가 for문을 돌 때마다 바뀌게 설정한다.
+
         while ??:
             if ??:
                 ??
@@ -167,14 +179,18 @@ class a_star(Node):
             current =??
 
             for i in range(8):
+                #next는 current에 인접한 노드가 선택된다.
                 next = ??
                 if next[0] >= 0 and next[1] >= 0 and next[0] < self.GRIDSIZE and next[1] < self.GRIDSIZE:
+                    # next노드의 grid값이 50보다 작으면 로봇이 갈 수 있다는 의미이기 때문에 코스트 계산
+                    # 코스트가 낮으면 path, cost변수를 갱신 후 Q에 next를 넣어준다.
                         if self.grid[next[0]][next[1]] < 50:
                             if ??:
                                 Q.??
                                 self.path[next[0]][next[1]] = ???
                                 self.cost[next[0]][next[1]] = ???
-
+        # 모든 노드의 탐색이 끝났으면 저장했던 path를 역으로 추적해서 최종 경로를 얻는다.
+        # 주석대로 처리하면 dijkstra방식이고 여기에 heuristic함수를 추가하면 a_star가 된다.
         node = ??
         while ?? 
             nextNode = ??
