@@ -40,9 +40,9 @@ class odom(Node):
         self.is_calc_theta=False
         # x,y,theta는 추정한 로봇의 위치를 저장할 변수 입니다.        
         # 로봇의 초기위치를 맵 상에서 로봇의 위치와 맞춰줘야 합니다. 
-        self.x=0
-        self.y=0
-        self.theta=0.0
+        self.x = msg.twist.angular.x
+        self.y = msg.twist.angular.y
+        self.theta = msg.twist.linear.z/180*pi
         # imu_offset은 초기 로봇의 orientation을 저장할 변수 입니다.
         self.imu_offset=0
         self.prev_time=0
@@ -50,19 +50,20 @@ class odom(Node):
         
         '''
         로직 2. publish, broadcast 할 메시지 설정
-        self.odom_msg.header.frame_id=
-        self.odom_msg.child_frame_id=
-
-        self.base_link_transform.header.frame_id = 
-        self.base_link_transform.child_frame_id = 
-
-        self.laser_transform.header.frame_id = 
-        self.laser_transform.child_frame_id =      
-        self.laser_transform.transform.translation.x = 
-        self.laser_transform.transform.translation.y = 
-        self.laser_transform.transform.translation.z = 
-        self.laser_transform.transform.rotation.w = 
         '''
+        self.odom_msg.header.frame_id= 'map'
+        self.odom_msg.child_frame_id= 'base_link'
+
+        self.base_link_transform.header.frame_id = 'map'
+        self.base_link_transform.child_frame_id = 'base_link'
+
+        self.laser_transform.header.frame_id = 'base_link'
+        self.laser_transform.child_frame_id = 'laser'   
+        self.laser_transform.transform.translation.x = 0.0
+        self.laser_transform.transform.translation.y = 0.0
+        self.laser_transform.transform.translation.z = 1.0
+        self.laser_transform.transform.rotation.w = 1.0
+        
     
 
     def listener_callback(self, msg):
@@ -84,10 +85,11 @@ class odom(Node):
             self.x=0, self.y=1 이 나와야 합니다. 로봇의 헤딩이 90도 돌아가 있는
             상태에서 선속도를 가진다는 것은 x축방향이 아니라 y축방향으로 이동한다는 뜻입니다. 
             #절대위치 사용
-            self.x+=
-            self.y+=
-            self.theta+=
-            '''              
+            '''
+            self.x += linear_x *cos(self.theta)*self.period 	
+            self.y += linear_x *sin(self.theta)*self.period
+            self.theta += angular_z * self.period 
+                          
             self.base_link_transform.header.stamp =rclpy.clock.Clock().now().to_msg()
             self.laser_transform.header.stamp =rclpy.clock.Clock().now().to_msg()
             
