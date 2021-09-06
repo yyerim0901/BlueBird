@@ -27,7 +27,7 @@ class pathPub(Node):
 
     def __init__(self):
         super().__init__('path_pub')
-        self.prev_i = 0 
+
         # 로직 1. publisher, subscriber 만들기
         self.global_path_pub = self.create_publisher(Path, 'global_path', 10)
         self.local_path_pub = self.create_publisher(Path, 'local_path', 10)
@@ -74,7 +74,9 @@ class pathPub(Node):
         self.local_path_size=20 
 
         self.count=0
+        self.current_waypoint = -1
 
+        
     def listener_callback(self,msg):
         self.is_odom=True
         self.odom_msg=msg
@@ -90,25 +92,16 @@ class pathPub(Node):
             # print(x,y)
             current_waypoint=-1
             '''
-            로직 5. global_path 중 로봇과 가장 가까운 포인트 계산
+            로직 5. global_path 중 로봇과 가장 가까운 포인트 구하기
             '''
-            # global 패스위의 점중에 로봇과 가장 가까운점들을 뽑아오는 것
-            min_dis = float('inf')
-            
+            min_dis=float('inf')
             for i,waypoint in enumerate(self.global_path_msg.poses) :
-                if i < self.prev_i :
-                    continue
 
-                if i > self.prev_i + 5 : 
-                    break
-                distance = sqrt(pow(x-waypoint.pose.position.x,2)+pow(y-waypoint.pose.position.y,2))
-                if distance < min_dis :
-                    min_dis = distance
-                    self.prev_i = i
-                    current_waypoint = i
-                    print(i)
-                
-            
+                distance= sqrt(pow(x-waypoint.pose.position.x,2)+pow(y-waypoint.pose.position.y,2))
+                if distance < min_dis and abs(self.current_waypoint-i)<5:
+                    min_dis= distance
+                    current_waypoint= i
+                    self.current_waypoint = i
             
 
 

@@ -33,7 +33,7 @@ class Handcontrol(Node):
 
         # self.timer = self.create_timer(1, self.timer_callback)
         print(threading.current_thread().getName())
-        #for _ in range(10):
+        
         thread = threading.Thread(target = self.timer_callback)
         thread.daemon=True
         thread.start()
