@@ -187,9 +187,9 @@ def project2img_mtx(params_cam):
     로직 1. params에서 카메라의 width, height, fov를 가져와서 focal length를 계산.
     
     문제 : (2 * math.tan(params_cam['FOV'] / 2))으로 하면  -18.73439426이 나옴
-    => 라디안으로 값이 들어가서 생기는 오차
+    => FOv가 도 값이 들어가서 생기는 오차
     """
-    # tan를 라디안을 math.pi / 180을 통해 라디안을 도로 바꿔주어 문제 해결
+    # tan를 FOV의 도 값을 math.pi / 180을 통해 라디안으로 바꿔주어 문제 해결
     fc_x = params_cam["HEIGHT"] / (2 * math.tan((math.pi / 180) * params_cam['FOV'] / 2))
     fc_y = params_cam['HEIGHT'] / (2 * math.tan((math.pi / 180) * params_cam['FOV'] / 2))
 
@@ -204,8 +204,6 @@ def project2img_mtx(params_cam):
     로직 3. Projection 행렬을 계산.
     """
     R_f = np.array([[fc_x, 0, cx], [0, fc_y, cy]])
-    print(R_f)
-
 
     """
     테스트
@@ -350,31 +348,37 @@ class SensorCalib(Node):
    
         로직 3. 카메라 콜백함수에서 이미지를 클래스 내 변수로 저장.
 
-        np_arr = 
-
-        self.img = 
-
         """
+        np_arr = np.frombuffer(msg.data, np.uint8)
 
-    def scan_callback(self, msg):
-    
+        self.img = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
+
+    def scan_callback(self, msg): 
         """
 
         로직 4. 라이다 2d scan data(거리와 각도)를 가지고 x,y 좌표계로 변환
 
-        self.R = 
+        """
+        # /scan의 ranges를 array로 받기 => 행렬 계산을 하기 위해
+        self.R = np.array(msg.ranges, dtype=float)
 
-        x = 
-        y = 
-        z = 
+        tmp_x = np.arange(360) * math.cos(math.pi / 180)    # 각도에 맞는 값을 array로 만들기
+        x = tmp_x * self.R  # 360도에 해당하는 x 좌표 변환 값 구하기
 
+        tmp_y = np.arange(360) * math.sin(math.pi / 180)    # 각도에 맞는 값을 array로 만들기
+        y = tmp_y * self.R  # 360도에 해당하는 y 좌표 변환 값 구하기
+
+        z = np.zeros(360) # z좌표는 라이다 기준 0
+
+        # 행렬 합치기
         self.xyz = np.concatenate([
             x.reshape([-1, 1]),
             y.reshape([-1, 1]),
             z.reshape([-1, 1])
         ], axis=1)
+
+        print(self.xyz)
         
-        """
 
     def timer_callback(self):
 
