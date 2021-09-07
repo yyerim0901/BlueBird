@@ -186,22 +186,26 @@ def project2img_mtx(params_cam):
     """
     로직 1. params에서 카메라의 width, height, fov를 가져와서 focal length를 계산.
     
-    fc_x = 
-    fc_y = 
+    문제 : (2 * math.tan(params_cam['FOV'] / 2))으로 하면  -18.73439426이 나옴
+    => 라디안으로 값이 들어가서 생기는 오차
     """
+    # tan를 라디안을 math.pi / 180을 통해 라디안을 도로 바꿔주어 문제 해결
+    fc_x = params_cam["HEIGHT"] / (2 * math.tan((math.pi / 180) * params_cam['FOV'] / 2))
+    fc_y = params_cam['HEIGHT'] / (2 * math.tan((math.pi / 180) * params_cam['FOV'] / 2))
 
     """
     로직 2. 카메라의 파라메터로 이미지 프레임 센터를 계산.
-    cx = 
-    cy = 
     """
+    cx = params_cam["WIDTH"] / 2
+    cy = params_cam["HEIGHT"] / 2
 
     """
 
     로직 3. Projection 행렬을 계산.
-    R_f =
-
     """
+    R_f = np.array([[fc_x, 0, cx], [0, fc_y, cy]])
+    print(R_f)
+
 
     """
     테스트
