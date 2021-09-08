@@ -169,7 +169,8 @@ def transformMTX_lidar2cam(params_lidar, params_cam):
 
     """
 
-    return np.eye(4)
+    return RT
+    # return np.eye(4)
 
 
 def project2img_mtx(params_cam):
@@ -227,7 +228,8 @@ def project2img_mtx(params_cam):
     [  0.         207.84609691 120.        ]]
     """
 
-    return np.zeros((2,3))
+    return R_f
+    # return np.zeros((2,3))
 
 
 def draw_pts_img(img, xi, yi):
@@ -359,8 +361,12 @@ class SensorCalib(Node):
         로직 4. 라이다 2d scan data(거리와 각도)를 가지고 x,y 좌표계로 변환
 
         """
+        np.set_printoptions(precision=15)
         # /scan의 ranges를 array로 받기 => 행렬 계산을 하기 위해
         self.R = np.array(msg.ranges, dtype=float)
+        # print(msg.ranges)
+        # print(self.R)
+        # print('------------')
 
         tmp_x = np.arange(360) * math.cos(math.pi / 180)    # 각도에 맞는 값을 array로 만들기
         x = tmp_x * self.R  # 360도에 해당하는 x 좌표 변환 값 구하기
@@ -376,8 +382,6 @@ class SensorCalib(Node):
             y.reshape([-1, 1]),
             z.reshape([-1, 1])
         ], axis=1)
-
-        print(self.xyz)
         
 
     def timer_callback(self):
@@ -386,8 +390,12 @@ class SensorCalib(Node):
 
             """
             로직 5. 라이다 x,y 좌표 데이터 중 정면 부분만 crop
-            xyz_p = 
             """
+            xyz_p = np.concatenate((self.xyz[0:90],self.xyz[270:360]),axis=0)
+            # test_np = np.zeros(360)
+            # print(test_np.reshape([-1, 1]))
+            # xyz_p1 = np.append(xyz_p, test_np.reshape([-1, 1]), axis = 1)
+            # print(xyz_p1)
 
             """
             로직 6. transformation class 의 transform_lidar2cam 로 카메라 3d 좌표 변환
