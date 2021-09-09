@@ -11,9 +11,9 @@ params_lidar = {
     "localIP": "127.0.0.1",
     "localPort": 2368,
     "Block_SIZE": int(1206),
-    "X": -0.01, # meter
+    "X": 0.00, # meter
     "Y": 0.0,
-    "Z": 0.19,
+    "Z": 0.19 + 0.1,
     "YAW": 0.0, # deg
     "PITCH": 0.0,
     "ROLL": 0.0
@@ -27,9 +27,9 @@ params_cam = {
     "localIP": "127.0.0.1",
     "localPort": 1232,
     "Block_SIZE": int(65000),
-    "X": 0.07, # meter
-    "Y": 0.0,
-    "Z":  0.15,
+    "X": 0.03, # meter
+    "Y": 0.00,
+    "Z":  0.19,
     "YAW": 0.0, # deg
     "PITCH": 0.0,
     "ROLL": 0.0
@@ -108,8 +108,8 @@ def transformMTX_lidar2cam(params_lidar, params_cam):
     로직 1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
 
     """
-    lidar_yaw, lidar_pitch, lidar_roll = params_lidar["YAW"], params_lidar["PITCH"], params_lidar["ROLL"]
-    cam_yaw, cam_pitch, cam_roll = params_cam["YAW"], params_cam["PITCH"], params_cam["ROLL"]
+    lidar_yaw, lidar_pitch, lidar_roll = np.deg2rad(params_lidar["YAW"]), np.deg2rad(params_lidar["PITCH"]), np.deg2rad(params_lidar["ROLL"])
+    cam_yaw, cam_pitch, cam_roll = np.deg2rad(params_cam["YAW"]), np.deg2rad(params_cam["PITCH"]), np.deg2rad(params_cam["ROLL"])
     
     lidar_pos = [params_lidar["X"], params_lidar["Y"], params_lidar["Z"]]
     cam_pos = [params_cam["X"], params_cam["Y"], params_cam["Z"]]
