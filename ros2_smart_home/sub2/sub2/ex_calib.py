@@ -11,9 +11,9 @@ params_lidar = {
     "localIP": "127.0.0.1",
     "localPort": 2368,
     "Block_SIZE": int(1206),
-    "X": 0.0, # meter
+    "X": -0.01, # meter
     "Y": 0.0,
-    "Z": 0.6,
+    "Z": 0.19,
     "YAW": 0.0, # deg
     "PITCH": 0.0,
     "ROLL": 0.0
@@ -27,9 +27,9 @@ params_cam = {
     "localIP": "127.0.0.1",
     "localPort": 1232,
     "Block_SIZE": int(65000),
-    "X": 0.0, # meter
+    "X": 0.07, # meter
     "Y": 0.0,
-    "Z":  1.0,
+    "Z":  0.15,
     "YAW": 0.0, # deg
     "PITCH": 0.0,
     "ROLL": 0.0
@@ -272,12 +272,10 @@ class LIDAR2CAMTransform:
         xyz_c = xyz_p
         
         """
-        
         로직 2. 클래스 내 self.RT로 라이다 포인트들을 카메라 좌표계로 변환시킨다.
-        
-        xyz_c = 
-        
         """
+        xyz_c = np.matmul(xyz_c, self.RT.T)
+        
         return xyz_c
 
     def project_pts2img(self, xyz_c, crop=True):
@@ -286,22 +284,24 @@ class LIDAR2CAMTransform:
 
         """
         로직 3. RT로 좌표 변환된 포인트들의 normalizing plane 상의 위치를 계산.
-        xn, yn = 
-
         """
+        xc = xyz_c[:, 0].reshape(-1, 1)
+        yc = xyz_c[:, 1].reshape(-1, 1)
+        zc = xyz_c[:, 2].reshape(-1, 1)
+        xn, yn = xc / (zc + 0.0000001) , yc / (zc + 0.0000001)
         
         # 로직 4. normalizing plane 상의 라이다 포인트들에 proj_mtx를 곱해 픽셀 좌표값 계산.
-
         # xyi = np.matmul(self.proj_mtx, np.concatenate([xn, yn, np.ones_like(xn)], axis=0))
+        xyi = np.matmul(np.concatenate([xn, yn, np.ones_like(xn)], axis=1), self.proj_mtx.T)
 
         """
         로직 5. 이미지 프레임 밖을 벗어나는 포인트들을 crop.
 
+        """
         if crop:
-            xyi = 
+            xyi = self.crop_pts(xyi)
         else:
             pass
-        """
         return xyi
 
     def crop_pts(self, xyi):
@@ -368,10 +368,10 @@ class SensorCalib(Node):
         # print(self.R)
         # print('------------')
 
-        tmp_x = np.arange(360) * math.cos(math.pi / 180)    # 각도에 맞는 값을 array로 만들기
+        tmp_x = np.cos(np.arange(360) * math.pi / 180)    # 각도에 맞는 값을 array로 만들기
         x = tmp_x * self.R  # 360도에 해당하는 x 좌표 변환 값 구하기
 
-        tmp_y = np.arange(360) * math.sin(math.pi / 180)    # 각도에 맞는 값을 array로 만들기
+        tmp_y = np.sin(np.arange(360) * math.pi / 180)    # 각도에 맞는 값을 array로 만들기
         y = tmp_y * self.R  # 360도에 해당하는 y 좌표 변환 값 구하기
 
         z = np.zeros(360) # z좌표는 라이다 기준 0
@@ -382,7 +382,6 @@ class SensorCalib(Node):
             y.reshape([-1, 1]),
             z.reshape([-1, 1])
         ], axis=1)
-        
 
     def timer_callback(self):
 
@@ -391,30 +390,31 @@ class SensorCalib(Node):
             """
             로직 5. 라이다 x,y 좌표 데이터 중 정면 부분만 crop
             """
-            xyz_p = np.concatenate((self.xyz[0:90],self.xyz[270:360]),axis=0)
-            # test_np = np.zeros(360)
-            # print(test_np.reshape([-1, 1]))
-            # xyz_p1 = np.append(xyz_p, test_np.reshape([-1, 1]), axis = 1)
-            # print(xyz_p1)
+            xyz_p = np.concatenate((self.xyz[0:90],self.xyz[270:360]), axis=0) # 270 ~ 89도까지의 라이다 포인트 슬라이싱
+            xyz_plus = np.ones((xyz_p.shape[0], 1)) # 차원을 맞춰주기 위한 xyz_p 행 1열의 1 array 생성
+           
+            xyz_p = np.concatenate((xyz_p, xyz_plus), axis=1) # 3열의 xyz_p를 4열의 xyz_p로 augmentation
+            # print(xyz_p)
 
             """
             로직 6. transformation class 의 transform_lidar2cam 로 카메라 3d 좌표 변환
-            xyz_c = 
             """
+            xyz_c = self.l2c_trans.transform_lidar2cam(xyz_p) # 좌표 변환하기 위한 함수 호출
+            # print(xyz_c)
 
             """
             로직 7. transformation class 의 project_pts2img로 카메라 프레임으로 정사영
-            xy_i = 
             """
-
+            xy_i = self.l2c_trans.project_pts2img(xyz_c, crop=True)
+            
             """
             로직 8. draw_pts_img()로 카메라 이미지에 라이다 포인트를 draw 하고 show
             
-            img_l2c = 
+            """
+            img_l2c = draw_pts_img(self.img, xy_i[:, 0].astype(int), xy_i[:, 1].astype(int))
 
             cv2.imshow("Lidar2Cam", img_l2c)
             cv2.waitKey(1)
-            """
 
         else:
 
