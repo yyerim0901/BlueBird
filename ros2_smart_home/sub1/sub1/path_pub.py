@@ -46,7 +46,7 @@ class pathPub(Node):
         로직 2. 만들어 놓은 경로 데이터를 읽기 모드로 open
         '''
         # globl path는 받은 메모장 파일에서 불러와서 찍는다.
-        full_path= 'C:\\Users\\multicampus\\Desktop\\test_loop.txt'
+        full_path= 'C:\\SSAFY\\mini-iot-control\\code\\test.txt'
         self.f= open(full_path, 'r')
 
         

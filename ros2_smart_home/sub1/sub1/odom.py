@@ -44,10 +44,17 @@ class odom(Node):
         self.is_imu=False
         self.is_calc_theta=False
         # x,y,theta는 추정한 로봇의 위치를 저장할 변수 입니다.
-        self.x=0.0
-        self.y=0.0
+        # self.x=0.0
+        # self.y=0.0
                 
-        self.theta=0.0
+        # self.theta=0.0
+        self.start_x = 0.0
+        self.start_y = 0.0
+        self.start_theta = 0.0
+
+        self.x = 0.0
+        self.y = 0.0
+        self.theta = 0.0
         # imu_offset은 초기 로봇의 orientation을 저장할 변수 입니다.
         self.imu_offset=0
         self.prev_time=0
@@ -95,10 +102,14 @@ class odom(Node):
         # print(self.x, self.y)
         if self.is_imu ==True:
             if self.is_status == False :
+                self.x = msg.twist.angular.x
+                self.y = msg.twist.angular.y
+                self.theta = msg.twist.linear.z/180*pi
+                
                 self.is_status=True
                 self.prev_time=rclpy.clock.Clock().now()
             else :
-                
+
                 self.current_time=rclpy.clock.Clock().now()
                 # 계산 주기를 저장한 변수 입니다. 단위는 초(s)
                 self.period=(self.current_time-self.prev_time).nanoseconds/1000000000
@@ -112,7 +123,7 @@ class odom(Node):
                 상태에서 선속도를 가진다는 것은 x축방향이 아니라 y축방향으로 이동한다는 뜻입니다. 
                 '''
 
-                self.x += linear_x *cos(self.theta)*self.period 	
+                self.x += linear_x *cos(self.theta)*self.period
                 self.y += linear_x *sin(self.theta)*self.period
                 self.theta += angular_z * self.period 
                 

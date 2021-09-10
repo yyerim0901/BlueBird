@@ -84,7 +84,6 @@ class odom(Node):
             self.theta = self.robot_yaw
 
 
-
     def listener_callback(self, msg):
         # print('linear_vel : {}  angular_vel : {}'.format(msg.twist.linear.x,-msg.twist.angular.z))        
         if self.is_status == False :

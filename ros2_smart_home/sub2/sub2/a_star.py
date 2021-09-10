@@ -134,6 +134,16 @@ class a_star(Node):
             goal_y = msg.pose.position.y
             goal_cell = self.pose_to_grid_cell(goal_x,goal_y)
             self.goal = list(map(int, goal_cell))
+            
+            # print(goal_cell) - 직             
+            # print(self.goal) - 직
+            # print(msg)
+            
+            '''
+            goal_x = msg.pose.position.x
+            goal_y = msg.pose.position.y
+            goal_cell = self.pose_to_grid_cell(goal_x,goal_y)
+            self.goal = list(map(int, goal_cell))
 
 
             if self.is_map ==True and self.is_odom==True  :
