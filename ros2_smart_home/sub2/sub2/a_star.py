@@ -139,7 +139,7 @@ class a_star(Node):
             # print(self.goal) - 직
             # print(msg)
             
-            '''
+            
             goal_x = msg.pose.position.x
             goal_y = msg.pose.position.y
             goal_cell = self.pose_to_grid_cell(goal_x,goal_y)
@@ -188,7 +188,7 @@ class a_star(Node):
         hq.heapify(Q)
 
         found = False
-        print("다익스트라 실행")
+        #print("다익스트라 실행")
 
         '''
         로직 7. grid 기반 최단경로 탐색
