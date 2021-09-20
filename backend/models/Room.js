@@ -1,16 +1,17 @@
 const mysql = require('mysql');
 const db = require('../config/db');
-const table = 'users';
+const table = 'room';
 
 module.exports = {
 
-    getUser : function(id){
+    getEmployee : function(room_number){
         return new Promise((resolve, reject)=>{
             const con = mysql.createConnection(db);
 
             con.query(
-                `select id, name, date_format(birthdate, "%Y/%m/%d)
-                as birthdate from ${table}`, (err, result, fields)=>{
+                `select room_number, name, x, y
+                from ${table}
+                where employee_number = ${room_number}`, (err, result, fields)=>{
                     if(err){
                         reject(err);
                     }else{
