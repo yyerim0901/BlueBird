@@ -37,8 +37,8 @@ class loadMap(Node):
         self.map_size_x=350 
         self.map_size_y=350
         self.map_resolution=0.05
-        self.map_offset_x=-8-8.75
-        self.map_offset_y=-4-8.75
+        self.map_offset_x=-14.75
+        self.map_offset_y=1.05
         self.map_data = [0 for i in range(self.map_size_x*self.map_size_y)] #이게 2중 for문인가?
         grid=np.array(self.map_data)
         grid=np.reshape(grid,(350, 350))
@@ -61,7 +61,7 @@ class loadMap(Node):
         '''
         로직 2. 맵 데이터 읽고, 2차원 행렬로 변환
         '''
-        full_path='C:\\Users\\multicampus\\Desktop\\IoTPJT\\ros2_smart_home\\sub2\\map\\map.txt'
+        full_path='C:\\Users\\multicampus\\Desktop\\IoTPJT\\ros2_smart_home\\sub3\\map\\map3.txt'
         self.f=open(full_path,'r')
 
         line=self.f.readline().split()
