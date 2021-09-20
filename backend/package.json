@@ -8,6 +8,12 @@
   },
   "author": "",
   "license": "MIT",
+<<<<<<< HEAD
+=======
+  "devDependencies": {
+    "nodemon": "^2.0.12"
+  },
+>>>>>>> b8d28f0dd1b5edb08f9f56f7de0b6d848262c20d
   "dependencies": {
     "express": "^4.17.1"
   }
