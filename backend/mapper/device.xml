@@ -3,7 +3,7 @@
 
 <mapper namespace="device">
     <!-- 방 번호 입력하면 그 방에 있는 기기 리스트 조회 -->
-    <select id="searchDeviceByRoomNumber" parameterType="int" resultType="list">
+    <select id="searchDevicesByRoomNumber" parameterType="int" resultType="list">
         SELECT *
         FROM device
         WHERE room_number = #{room_number};

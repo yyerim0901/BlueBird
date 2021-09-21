@@ -1,25 +1,21 @@
-const mysql = require('mysql');
 const db = require('../config/db');
-const table = 'room';
+const mybatisMapper = require('mybatis-mapper');
+mybatisMapper.createMapper(['./mapper/room.xml']);
 
 module.exports = {
 
-    getEmployee : function(room_number){
+    getRoom : function(room_number){
+        const query = mybatisMapper.getStatement('room', 'searchRoomByEmployeeNumber', data);
         return new Promise((resolve, reject)=>{
-            const con = mysql.createConnection(db);
-
-            con.query(
-                `select room_number, name, x, y
-                from ${table}
-                where employee_number = ${room_number}`, (err, result, fields)=>{
-                    if(err){
-                        reject(err);
-                    }else{
-                        resolve(result);
-                    }
+            db.query(query, (err, result, fields)=>{
+                if(err){
+                    console.log(err);
+                    reject(err);
                 }
-            );
-            con.end();
+                else{
+                    resolve(result);
+                }
+            });
         });
     }
 }
