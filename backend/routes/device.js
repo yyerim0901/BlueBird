@@ -9,9 +9,9 @@ router.use(express.urlencoded({extended:false}));
 router.get('/:roomNumber', DeviceController.doGetDevices);
 
 // 전자기기 on
-router.post('/deviceon', DeviceController.OnDevice);
+router.post('/on', DeviceController.OnDevice);
 
 // 전자기기 off
-router.post('/deviceoff', DeviceController.OffDevice);
+router.post('/off', DeviceController.OffDevice);
 
 module.exports = router;

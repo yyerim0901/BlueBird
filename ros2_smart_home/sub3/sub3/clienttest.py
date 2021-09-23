@@ -31,6 +31,10 @@ class goFront(Node):
             # print('get linear x ', data)
             self.cmd_msg.linear.x=data
 
+        @self.sio.on('msg')
+        def get_msg(data):
+            print(data)
+
         @self.sio.event
         def disconnect():
             print('disconnected from server')

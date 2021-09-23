@@ -18,7 +18,9 @@ module.exports = {
         const data = {
             'device_number' : req.body.device_number
         }
-        
+        // ROS device on 메시지 전송
+        req.io.emit('msg','device on!');
+
         console.log('turn on #device : ', req.body.device_number);
         Device.onDevice(data).then((result)=>{
             res.send(result);
@@ -28,6 +30,8 @@ module.exports = {
         const data = {
             'device_number' : req.body.device_number
         }
+        // ROS device off 메세지 전송
+        req.io.emit('msg', 'device off!');
         
         console.log('turn off #device : ', req.body.device_number);
         Device.offDevice(data).then((result)=>{
