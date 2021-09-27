@@ -48,7 +48,7 @@ params_lidar = {
     "Range" : 90, #min & max range of lidar azimuths
     "CHANNEL" : int(1), #verticla channel of a lidar
     "localIP": "127.0.0.1",
-    "localPort": 2368,
+    "localPort": 9094,
     "Block_SIZE": int(1206),
     "X": 0.00, # meter
     "Y": 0.0,
