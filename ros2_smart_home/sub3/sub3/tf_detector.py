@@ -181,7 +181,9 @@ def main(args=None):
     # back_folder='catkin_ws\\src\\ros2_smart_home\\sub3'
     # back_folder='Desktop\\test_ws\\src\\ssafy_smarthome\\sub3'
 
-    CWD_PATH = os.getcwd()
+    # CWD_PATH = os.path.join('C:','Users','multicampus','Desktop','IoTPJT','ros2_smart_home', 'sub3', 'sub3')
+    CWD_PATH = 'C:\\Users\\multicampus\\Desktop\\IoTPJT\\ros2_smart_home\\sub3\\sub3'
+    # 'C:\Users\multicampus\Desktop\IoTPJT\ros2_smart_home\sub3\sub3'
     
     MODEL_NAME = 'ssd_mobilenet_v1_coco_2018_01_28'
 
