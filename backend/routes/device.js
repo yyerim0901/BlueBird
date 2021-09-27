@@ -14,4 +14,5 @@ router.post('/on', DeviceController.OnDevice);
 // 전자기기 off
 router.post('/off', DeviceController.OffDevice);
 
+
 module.exports = router;
