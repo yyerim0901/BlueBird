@@ -187,7 +187,7 @@ def main(args=None):
     MODEL_NAME = 'ssd_mobilenet_v1_coco_2018_01_28'
 
     PATH_TO_WEIGHT = os.path.join(CWD_PATH, 'model_weights', \
-        MODEL_NAME, 'frozen_inference_graph_custom.pb')
+        MODEL_NAME, 'frozen_inference_graph.pb')
 
     print(PATH_TO_WEIGHT)
     PATH_TO_LABELS = os.path.join(CWD_PATH, 'model_weights', \
