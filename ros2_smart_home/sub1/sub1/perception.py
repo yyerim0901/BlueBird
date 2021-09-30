@@ -81,7 +81,7 @@ class IMGParser(Node):
         self.a += 1
         if self.a%30 == 0:
             self.cnt += 1
-            img_name = "waterIMG_{}.png".format(self.cnt)
+            img_name = "document_{}.png".format(self.cnt)
             cv2.imwrite(img_name, img_resize)
             print('save image !')
         

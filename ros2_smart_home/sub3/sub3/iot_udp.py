@@ -1,4 +1,4 @@
-
+import sys
 import rclpy
 from rclpy.node import Node  
 import time
@@ -66,42 +66,50 @@ class iot_udp(Node):
 
         self.is_recv_data=False
 
-        os.system('cls')
+        # os.system('cls')
         while True:
-            pass
-            '''
-            로직 5. 사용자 메뉴 생성
-            print('Select Menu [0: scan, 1: connect, 2:control, 3:disconnect, 4:all_procedures ] ')
-            menu=??
+            # 로직 5. 사용자 메뉴 생성
+            # print('Select Menu [0: scan, 1: connect, 2:control, 3:disconnect, 4:all_procedures ] ')
+            menu=int(input())
 
-            if menu == ?? :
-                채워 넣기
+            if menu == 0 :
+                pass
+            elif menu == 1:
+                pass
+            elif menu == 2:
+                pass
+            elif menu == 3:
+                pass
+            else:
+                pass
+
             
-
-            '''
-
-
     def data_parsing(self,raw_data) :
-        print(raw_data)
         
         '''
         로직 3. 수신 데이터 파싱
-
-        header=?
-        data_length=?
-        aux_data=?
-
-
-        if header == ?? and data_length[0] == ??:
-            uid_pack=??
-            uid=self.packet_to_uid(uid_pack)
-        
-            network_status=??
-            device_status=??
-            
-            self.is_recv_data=True
-            self.recv_data=[uid,network_status,device_status]
         '''
+
+        header=raw_data[:30].decode('utf-8')
+        print(header)
+        # data_length=encode_data[19:23]
+        # aux_data=encode_data[23:45]
+
+        # print('header : ', header)
+        # print('data length : ', data_length)
+        # print('aux data : ', aux_data)
+
+
+        # if header == ?? and data_length[0] == ??:
+        #     uid_pack=??
+        #     uid=self.packet_to_uid(uid_pack)
+        
+        #     network_status=??
+        #     device_status=??
+            
+        #     self.is_recv_data=True
+        #     self.recv_data=[uid,network_status,device_status]
+        
  
     def send_data(self,uid,cmd):
         

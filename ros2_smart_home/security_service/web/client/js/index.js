@@ -1,10 +1,15 @@
+
+
 // WebClient에서 WebSocket 서버로 통신을 연결하고 서버에서 온 데이터를 웹페이지에 보여줄 수 있도록 해주는 노드입니다.
 
 // 노드 로직 순서
 // 1. 서버에서 온 메시지를 웹페이지에 전달
 // 2. 버튼 클릭시 호출되는 함수
 
+
+
 const socket = io();
+
 
 socket.on('disconnect', function()  {
     console.log('disconnected form server_client.');
@@ -12,59 +17,69 @@ socket.on('disconnect', function()  {
 
 
 // 로직 1. 서버에서 온 메시지를 웹페이지에 전달
-socket.on('sendSafetyStatus', function(message) {
-    console.log('sendSafetyStatus', message);
-    document.querySelector('#tSafetyStatus').value = message;
+socket.on('sendTimeToWeb', function(message) {
+    console.log('sendTimeToWeb', message);
+    document.querySelector('#tAreaTime').value = message;
 });
 
-socket.on('sendPatrolStatus', function(message) {
-    console.log('sendPatrolStatus', message);
-    document.querySelector('#tPatrolStatus').value = message;
+socket.on('sendWeatherToWeb', function(message) {
+    console.log('sendWeatherToWeb', message);
+    document.querySelector('#tAreaWeather').value = message;
 });
+
+socket.on('sendTemperatureToWeb', function(message) {
+    console.log('sendTemperatureToWeb', message);
+    document.querySelector('#tAreaTemp').value = message;
+});
+
+socket.on('sendAirConditionerToWeb', function(message) {
+    console.log('sendAirConditionerToWeb', message);
+    document.querySelector('#tAreaAircon').value = message;
+});
+
 
 // 로직 2. 버튼 클릭시 호출되는 함수
+function btn_click_on() {
 
-function btn_patrol_on() {
+    console.log('btn_click_on');
 
-    console.log('btn_patrol_on');
+    let data = { "key" : 1};
 
-    let data = 1;
-
-    socket.emit('PatrolOnToServer', data);
+    socket.emit('sendAirConOnToServer', data);
 };
 
-function btn_patrol_off() {
+function btn_click_off() {
 
-    console.log('btn_patrol_off');
+    console.log('btn_click_off');
 
-    let data = 0;
+    let data = { "key" : 2};
 
-    socket.emit('PatrolOffToServer', data);
+    socket.emit('sendAirConOffToServer', data);
 };
 
-function btn_turn_left() {
+function light_btn_click(num) {
 
-    console.log('btn_left');
+    console.log('light_btn_click', num);
 
-    let data = 1;
+    let data = { "key" : 3};
 
-    socket.emit('turnleftToServer', data);
+    socket.emit('sendLightOnToServer', data);
 };
 
-function btn_go_straight() {
+function airPurifier_btn_click(num) {
 
-    console.log('btn_go_straight');
+    console.log('airPurifier_btn_click', num);
 
-    let data = 2;
+    let data = { "key" : 4};
 
-    socket.emit('gostraightToServer', data);
+    socket.emit('sendAirPurifierOnToServer', data);
 };
 
-function btn_turn_right() {
+function blind_btn_click(num) {
 
-    console.log('btn_turn_right');
+    console.log('blind_btn_click', num);
 
-    let data = 3;
+    let data = { "key" : 5};
 
-    socket.emit('turnrightToServer', data);
+    socket.emit('sendBlindOnToServer', data);
 };

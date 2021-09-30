@@ -121,7 +121,7 @@ class detection_net_class():
                 np.squeeze(scores),
                 self.category_index,
                 use_normalized_coordinates=True,
-                min_score_thresh=0.5,
+                min_score_thresh=0.9,
                 line_thickness=8)
                 
         infer_time = time.time()-t_start
@@ -187,11 +187,11 @@ def main(args=None):
     MODEL_NAME = 'ssd_mobilenet_v1_coco_2018_01_28'
 
     PATH_TO_WEIGHT = os.path.join(CWD_PATH, 'model_weights', \
-        MODEL_NAME, 'frozen_inference_graph.pb')
+        MODEL_NAME, 'frozen_inference_graph_custom.pb')
 
     print(PATH_TO_WEIGHT)
     PATH_TO_LABELS = os.path.join(CWD_PATH, 'model_weights', \
-        'data', 'mscoco_label_map.pbtxt')
+        'data', 'labelmap.pbtxt')
 
     NUM_CLASSES = 90
 
