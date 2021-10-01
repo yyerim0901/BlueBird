@@ -20,7 +20,7 @@ class connection(Node):
 
     def __init__(self):
         super().__init__('connection')
-
+        print("connection_node_setting")
         # 환경 정보
         self.env_sub = self.create_subscription(EnviromentStatus, '/envir_status', self.envir_callback, 10)
         self.env_data ={"day": 0, "hour": 0, "minute": 0, "month": 0, "temperature": 0, "weather": ""}
@@ -30,13 +30,14 @@ class connection(Node):
         self.subscription = self.create_subscription(TurtlebotStatus, '/turtlebot_status', self.listener_callback, 10)
 
         # 목표지점이 변경 될 때마다 값을 읽어와야함
-        self.goal_pose_sub = self.create_subscription(PoseStamped, '/goal_pose', self.goal_callback, 1)
-        self.destination.x = 0
-        self.destination.y = 0
+        self.timer = self.create_timer(1, self.goal_callback)
+        self.destination=[]
 
         # 터틀 봇이 일중인지 판단
         self.is_working = False
 
+        # 현재 목표가 설정됐는지 판단
+        self.is_goToGoal=False
         # mutex lock
         self.lock = threading.Lock()
 
@@ -47,15 +48,18 @@ class connection(Node):
         self.env_data = msg
 
     # 방의 위치를 전달 받았을 때 방으로 이동
-    def goal_callback(self, msg):
+    def goal_callback(self):
         # 현재 일중이 아니고, 현재 이동이라는 명령이 오면 진행
+        print("goal callback in connection")
         if not self.is_working and self.is_goToGoal:
+            print("Ready to get destination")
             goal_location = PoseStamped()
             goal_location.header.frame_id = 'map'
-            goal_location.pose.position.x = self.destination.x
-            goal_location.pose.position.y = self.destination.y
+            goal_location.pose.position.x = float(self.destination[0])
+            goal_location.pose.position.y = float(self.destination[1])
             goal_location.pose.orientation.w = 0.0
             self.goal_pose_pub.publish(goal_location)
+            self.is_goToGoal=False
 
     # 계속 로봇 위치 받는 함수
     def listener_callback(self, msg):
@@ -65,9 +69,9 @@ class connection(Node):
  
 def main(args=None):
     rclpy.init(args=None)
-    conMod = connect_model()
-    rclpy.spin(conMod)
-    conMod.destroy_node()
+    conn = connection()
+    rclpy.spin(conn)
+    conn.destroy_node()
     rclpy.shutdown()
 
 

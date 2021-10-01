@@ -35,9 +35,9 @@ class client(Node):
         @self.sio.on('goToGoal')
         def goToGoal_start(data):
             print('Vue로 부터온 명령어 : ', data)
-            conn.destination.x = data.x
-            conn.destination.y = data.y
-            print(conn.destination.x, conn.destination.y)
+            
+            conn.destination = [data[0]['x'],data[0]['y']]
+            print(conn.destination[0], conn.destination[1])
             conn.is_goToGoal = True
 
 
