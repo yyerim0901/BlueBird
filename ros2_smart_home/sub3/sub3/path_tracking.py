@@ -7,6 +7,7 @@ from squaternion import Quaternion
 from nav_msgs.msg import Odometry,Path
 from math import pi,cos,sin,sqrt,atan2
 import numpy as np
+from std_msgs.msg import Bool
 
 # 센서 데이터를 받아 사용하기 위함.
 from sensor_msgs.msg import LaserScan, PointCloud
@@ -33,6 +34,7 @@ class followTheCarrot(Node):
         self.subscription = self.create_subscription(Odometry,'/odom',self.odom_callback,10)
         self.status_sub = self.create_subscription(TurtlebotStatus,'/turtlebot_status',self.status_callback,10)
         self.path_sub = self.create_subscription(Path,'/local_path',self.path_callback,10)
+        self.is_working_pub = self.create_publisher(Bool,'is_working',1)
         
         
 
@@ -44,16 +46,18 @@ class followTheCarrot(Node):
         self.is_path=False
         self.is_status=False
         self.collision = False
-
+        self.is_working = Bool()
         self.odom_msg=Odometry()            
         self.robot_yaw=0.0
+        # 현재 일중인지 publish 할 것
+        self.is_working.data = False
         self.path_msg=Path()
         self.cmd_msg=Twist()
         # 로직 2. 파라미터 설정
         self.lfd=0.1
         self.min_lfd=0.1
         self.max_lfd=1.0
-
+        
 
     def timer_callback(self):
 
@@ -63,9 +67,9 @@ class followTheCarrot(Node):
             if len(self.path_msg.poses)> 1:
                 self.is_look_forward_point= False
                 
-                # 로봇의 현재 위치를 나타내는 변수
-                robot_pose_x=self.odom_msg.pose.pose.position.x
-                robot_pose_y=self.odom_msg.pose.pose.position.y
+                # 로봇의 절대위치를 받아옴
+                robot_pose_x=self.status_msg.twist.angular.x
+                robot_pose_y=self.status_msg.twist.angular.y
 
                 # 로봇이 경로에서 떨어진 거리를 나타내는 변수
                 lateral_error= sqrt(pow(self.path_msg.poses[0].pose.position.x-robot_pose_x,2)+pow(self.path_msg.poses[0].pose.position.y-robot_pose_y,2))
@@ -130,11 +134,11 @@ class followTheCarrot(Node):
                     로직 7. 선속도, 각속도 정하기
                     '''
 
-                    out_vel = 0.7
-                    out_rad_vel= theta * 1.3
+                    out_vel = 0.3
+                    out_rad_vel= theta * 2
 
                                  
-
+                    self.is_working.data = True
                     self.cmd_msg.linear.x=out_vel
                     self.cmd_msg.angular.z=out_rad_vel
                     
@@ -142,11 +146,13 @@ class followTheCarrot(Node):
            
             else :
                 print("no found forward point")
+                self.is_working.data = False
                 self.cmd_msg.linear.x=0.0
                 self.cmd_msg.angular.z=0.0
 
             
             self.cmd_pub.publish(self.cmd_msg)
+            self.is_working_pub.publish(self.is_working)
 
  
     

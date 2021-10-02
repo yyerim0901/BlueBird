@@ -41,16 +41,6 @@ class client(Node):
             conn.is_goToGoal = True
 
 
-        @self.sio.event
-        def my_message(data):
-            print('message received with ', data)
-            sio.emit('my response', {'response': 'my response'})
-
- 
-
-        @self.sio.on('msg')
-        def get_msg(data):
-            print(data)
 
         @self.sio.event
         def disconnect():
@@ -58,28 +48,6 @@ class client(Node):
 
         self.sio.connect('http://localhost:12001/')
 
-        # time_period = 0.3
-        # self.timer = self.create_timer(time_period, self.timer_callback)
-
-        # thread = threading.Thread(target = self.timer_callback)
-        # thread.daemon = True
-        # thread.start()
-
-        # self.sio.wait()
-
-    # def timer_callback(self):
-    #     if self.env_msg != '':
-    #         env_msg = dict()
-    #         env_msg['weather'] = self.env_msg.weather
-    #         env_msg['day'] = self.env_msg.day
-    #         env_msg['hour'] = self.env_msg.hour
-    #         env_msg['minute'] = self.env_msg.minute
-    #         env_msg['month'] = self.env_msg.month
-    #         env_msg['temperature'] = self.env_msg.temperature
-    #         self.sio.emit('env_msg', env_msg)
-
-    # def env_callback(self, msg):
-    #     self.env_msg = msg
 
 def main(args=None):
     try:

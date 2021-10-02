@@ -46,25 +46,51 @@ io.on('connection', socket => {
 
 
     //data = ""
-    socket.on('goToGoalToServer', (data) => {
+    socket.on('stuffBring', (data) => {
         console.log('목적지로 이동')
-        console.log('x,y', data)
+        //console.log('x,y', data)
         // 음성 명령어에서 분리
-        const where = {
-            "name" : data.where,
+        const command = {
+            "depart" : data.depart,
+            "stuff" : data.stuff,
+            "arrival" : data.arrival,
         }
-        // const what = data.what;
-        // const destination = data.destination;
+        const depart = {
+            "name": command['depart']
+        }
+        const stuff = {
+            "name": command['stuff']
+        }
+        const arrival = {
+            "name": command['arrival']
+        }
+        
+        const dataToROS = {};
 
-
-        console.log('search start room by name : ', where);
-        room_service.getRoom(where).then((result) => {
+        //console.log('search start room by name : ', command['depart']);
+        room_service.getRoom(depart).then((result) => {
+            //console.log(result)
+            console.log("depart xy 뽑기")
+            var temp =  Object.values(JSON.parse(JSON.stringify(result)))
             
-            console.log('search start room x, y by name : ', result);
-            socket.to(roomName).emit('goToGoal', result);
+            dataToROS['depart'] = { "x": temp[0].x, "y": temp[0].y }
+            console.log(dataToROS['depart']);
         })
-        // room_service.getRoom(where);
 
+        //console.log('search destination room by name : ', command['arrival']);
+
+        room_service.getRoom(arrival).then((result) => {
+            var temp =  Object.values(JSON.parse(JSON.stringify(result)))
+            //console.log(temp);
+            dataToROS['arrival'] = { "x": temp[0].x, "y": temp[0].y }
+            console.log(dataToROS['arrival']);
+        })
+        console.log("here..여기가 더빨리찍힘..어떻게 뽑은다음 데이터넣지..?")
+        dataToROS['stuff'] = stuff.name
+        //console.log(dataToROS['depart'])
+       
+        // // room_service.getRoom(where);
+        // socket.to(roomName).emit('stuffBringToROS', result);
  
     })
     // 여기까지 용직 추가

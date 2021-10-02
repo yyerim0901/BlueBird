@@ -26,7 +26,6 @@ class connection(Node):
         self.env_data ={"day": 0, "hour": 0, "minute": 0, "month": 0, "temperature": 0, "weather": ""}
     
         # 로봇 절대위치 좌표
-        self.tutlebot_loc = [0., 0.]
         self.subscription = self.create_subscription(TurtlebotStatus, '/turtlebot_status', self.listener_callback, 10)
 
         # 목표지점이 변경 될 때마다 값을 읽어와야함
@@ -38,6 +37,7 @@ class connection(Node):
 
         # 현재 목표가 설정됐는지 판단
         self.is_goToGoal=False
+
         # mutex lock
         self.lock = threading.Lock()
 
@@ -47,7 +47,7 @@ class connection(Node):
     def envir_callback(self, msg):
         self.env_data = msg
 
-    # 방의 위치를 전달 받았을 때 방으로 이동
+    # 목적지 위치를 전달 받았을 때 그 곳으로 이동하게 goal pose를 publish
     def goal_callback(self):
         # 현재 일중이 아니고, 현재 이동이라는 명령이 오면 진행
         print("goal callback in connection")
@@ -61,10 +61,11 @@ class connection(Node):
             self.goal_pose_pub.publish(goal_location)
             self.is_goToGoal=False
 
-    # 계속 로봇 위치 받는 함수
+    # 
     def listener_callback(self, msg):
-        self.tutlebot_loc[0] = msg.twist.angular.x
-        self.tutlebot_loc[1] = msg.twist.angular.y
+        self.turtlebot_status_msg = msg
+    
+
 
  
 def main(args=None):
