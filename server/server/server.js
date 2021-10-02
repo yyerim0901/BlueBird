@@ -42,7 +42,7 @@ io.on('connection', socket => {
         socket.to(roomName).emit('envMsg', message);
     });
 
-    // 용직 추가 Vue -> Server
+    // Vue -> Server
 
 
     //data = ""
@@ -93,32 +93,6 @@ io.on('connection', socket => {
         // socket.to(roomName).emit('stuffBringToROS', result);
  
     })
-    // 여기까지 용직 추가
-
-    socket.on('PatrolStatus', (message) => {
-        socket.to(roomName).emit('sendPatrolStatus', message);
-    });
-
-    socket.on('PatrolOnToServer', (data) => {
-        socket.to(roomName).emit('patrolOn', data);
-        console.log('Patrol On!');
-    });
-
-    socket.on('PatrolOffToServer', (data) => {
-        socket.to(roomName).emit('patrolOff', data);
-    });
-
-    socket.on('turnleftToServer', (data) => {
-        socket.to(roomName).emit('turnleft', data);
-    });
-
-    socket.on('gostraightToServer', (data) => {
-        socket.to(roomName).emit('gostraight', data);
-    });
-
-    socket.on('turnrightToServer', (data) => {
-        socket.to(roomName).emit('turnright', data);
-    });
 
     socket.on('disconnect', () => {
         console.log('disconnected from server');
