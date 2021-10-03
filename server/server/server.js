@@ -47,7 +47,7 @@ io.on('connection', socket => {
 
     //data = ""
     socket.on('stuffBring', (data) => {
-        console.log('목적지로 이동')
+        //console.log('목적지로 이동')
         //console.log('x,y', data)
         // 음성 명령어에서 분리
         const command = {
@@ -69,28 +69,23 @@ io.on('connection', socket => {
 
         //console.log('search start room by name : ', command['depart']);
         room_service.getRoom(depart).then((result) => {
-            //console.log(result)
-            console.log("depart xy 뽑기")
+
             var temp =  Object.values(JSON.parse(JSON.stringify(result)))
             
             dataToROS['depart'] = { "x": temp[0].x, "y": temp[0].y }
-            console.log(dataToROS['depart']);
+            dataToROS['stuff'] = stuff
+            room_service.getRoom(arrival).then((result) => {
+                var temp =  Object.values(JSON.parse(JSON.stringify(result)))
+
+                dataToROS['arrival'] = { "x": temp[0].x, "y": temp[0].y }
+                
+                console.log("ROS2(Client.py)로 보내는 데이터: ", dataToROS);
+                socket.to(roomName).emit('stuffBringToROS', dataToROS);
+                
+            })
         })
 
-        //console.log('search destination room by name : ', command['arrival']);
 
-        room_service.getRoom(arrival).then((result) => {
-            var temp =  Object.values(JSON.parse(JSON.stringify(result)))
-            //console.log(temp);
-            dataToROS['arrival'] = { "x": temp[0].x, "y": temp[0].y }
-            console.log(dataToROS['arrival']);
-        })
-        console.log("here..여기가 더빨리찍힘..어떻게 뽑은다음 데이터넣지..?")
-        dataToROS['stuff'] = stuff.name
-        //console.log(dataToROS['depart'])
-       
-        // // room_service.getRoom(where);
-        // socket.to(roomName).emit('stuffBringToROS', result);
  
     })
 

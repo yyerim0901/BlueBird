@@ -5,6 +5,7 @@ from rclpy.node import Node
 from connection import *
 from geometry_msgs.msg import Twist
 from ssafy_msgs.msg import EnviromentStatus
+from std_msgs.msg import Int16, Int8
 
 def startConn(conn):
     rclpy.spin(conn)
@@ -18,10 +19,15 @@ class client(Node):
         rclpy.init(args=None)
         super().__init__('client')
 
-
         conn = connection()
-
+        self.working_status_pub = self.create_publisher(Int16,'working_status',10)
         self.sio = socketio.Client()
+        self.turtlebot_status_msg = TurtlebotStatus()
+
+        self.working_status_msg =  Int16()
+        self.working_status_msg.data = 0
+
+
 
         @self.sio.event
         def connect():
@@ -32,14 +38,21 @@ class client(Node):
 
 
 
-        @self.sio.on('goToGoal')
-        def goToGoal_start(data):
+        @self.sio.on('stuffBringToROS')
+        def stuffBringStart(data):
             print('Vue로 부터온 명령어 : ', data)
-            
-            conn.destination = [data[0]['x'],data[0]['y']]
-            print(conn.destination[0], conn.destination[1])
-            conn.is_goToGoal = True
 
+            conn.operation = data
+            # 찾기 원하는 물건을 publish
+            if data['stuff']['name'] == '상자':
+                conn.want_stuff = 1
+            elif data['stuff']['name'] == '서류':
+                conn.want_stuff = 2
+            elif data['stuff']['name'] == '물':
+                conn.want_stuff = 3
+                print("물로 넣음")
+            self.working_status_msg.data = 0b1
+            self.working_status_pub.publish(self.working_status_msg)
 
 
         @self.sio.event

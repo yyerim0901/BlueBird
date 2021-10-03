@@ -1,3 +1,19 @@
+'''
+파랑새에서 tf_detector가 할 일
+working status가 0b0111 인 경우 (can find object) 갱신하고 (can find object -> doing find object) 10초동안 회전하기
+
+그과정에서 
+if 찾았다
+-> 객체의 좌표 얻고 goal pose를 publish 하고 working status 갱신 (doing find object -> can go object)
+
+if 못찾았다.
+-> 사용자에게 알리고 working status 0으로 만들기
+
+'''
+
+
+
+
 #!/ C:\Python37\python.exe
 import numpy as np
 import cv2
@@ -7,6 +23,7 @@ from rclpy.node import Node
 import time
 from sensor_msgs.msg import CompressedImage, LaserScan
 from ssafy_msgs.msg import BBox
+from std_msgs.msg import Int16,Int8
 
 import tensorflow.compat.v1 as tf
 
@@ -15,7 +32,7 @@ from sub2.ex_calib import *
 from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 
-
+from geometry_msgs.msg import Twist
 # 설치한 tensorflow를 tf 로 import 하고,
 # object_detection api 내의 utils인 vis_util과 label_map_util도 import해서
 # ROS 통신으로 들어오는 이미지의 객체 인식 결과를 ROS message로 송신하는 노드입니다.
@@ -121,8 +138,8 @@ class detection_net_class():
                 np.squeeze(scores),
                 self.category_index,
                 use_normalized_coordinates=True,
-                min_score_thresh=0.9,
-                line_thickness=8)
+                min_score_thresh=0.95,
+                line_thickness=4)
                 
         infer_time = time.time()-t_start
 
@@ -141,8 +158,14 @@ def visualize_images(image_out, t_cost):
     cv2.imshow(winname, cv2.resize(image_out, (2*image_out.shape[1], 2*image_out.shape[0])))
     cv2.waitKey(1)
 
+def working_status_callback(self,msg):
+    global working_status_msg
+    working_status_msg = msg
 
-     
+def want_stuff_callback(self,msg):
+    global want_stuff_msg
+    want_stuff_msg = msg     
+
 def img_callback(msg):
 
     global img_bgr
@@ -150,6 +173,10 @@ def img_callback(msg):
     np_arr = np.frombuffer(msg.data, np.uint8)
     img_bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
+def status_callback(msg):
+    global turtlebot_status_msg
+
+    turtlebot_status_msg = msg
 
 def scan_callback(msg):
 
@@ -246,10 +273,17 @@ def main(args=None):
     rclpy.init(args=args)
 
     g_node = rclpy.create_node('tf_detector')
+    
 
-    subscription_img = g_node.create_subscription(CompressedImage, '/image_jpeg/compressed', img_callback, 3)
+    cmd_pub = g_node.create_publisher(Twist, 'cmd_vel', 10)
+    subscription_img = g_node.create_subscription(CompressedImage, '/image_jpeg/compressed', img_callback, 10)
+    # status_sub = g_node.create_subscription(TurtlebotStatus,'/turtlebot_status',status_callback,10)
 
+    working_status_sub = g_node.create_subscription(Int16,'/working_status',working_status_callback,10) # woring status 값 받고 값을 다시 담아주기 위해 사용
+    want_stuff_sub = g_node.create_subscription(Int8,'/want_stuff', want_stuff_callback, 10) # 찾으려는 물건 값을 받기 위해 사용
     subscription_scan = g_node.create_subscription(LaserScan, '/scan', scan_callback, 3)
+
+    #cmd_msg=Twist()
 
     # subscription_scan
 
@@ -261,7 +295,7 @@ def main(args=None):
     l2c_trans = LIDAR2CAMTransform(params_cam, params_lidar)
 
     iter_step = 0
-
+    is_find_object = False
     while rclpy.ok():
 
         time.sleep(0.05)
@@ -296,6 +330,12 @@ def main(args=None):
         ## numpy array로 변환
 
         """
+        # 인식되는 객체들중에 원하는게 있는지 확인.
+        is_find_object = False
+        for i in classes_pick[0] :
+            if((int)(i) == want_stuff_msg.data):
+            is_find_object = True
+ 
         if len(boxes_detect) != 0:
 
             ih = img_bgr.shape[0]
@@ -352,6 +392,12 @@ def main(args=None):
             
             print(ostate_list)
         visualize_images(image_process, infer_time)
+
+        #심부름에서 회전하며 물건찾기 - object 못찾은 경우만 터틀 봇이 돌아감
+        if working_status_msg.data == 0b0111 :
+            cmd_msg.linear.x = 0.0
+            cmd_msg.angular.z = 0.5
+            cmd_pub.publish(cmd_msg)
 
     g_node.destroy_node()
     rclpy.shutdown()

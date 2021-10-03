@@ -184,7 +184,7 @@ class iot_udp(Node):
         if self.is_recv_data is True:
             print(self.recv_data[0], self.recv_data[1], self.recv_data[2])
         else :
-            print('no iot data'))
+            print('no iot data')
         
                    
 

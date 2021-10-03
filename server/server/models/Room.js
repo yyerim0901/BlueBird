@@ -5,7 +5,7 @@ mybatisMapper.createMapper(['./mapper/room.xml']);
 module.exports = {
 
     getRoom : function(name){
-        console.log(name)
+        console.log("search Room By: ", name)
         const query = mybatisMapper.getStatement('room', 'searchRoomByRoomName', name);
         return new Promise((resolve, reject)=>{
             db.query(query, (err, result, fields)=>{

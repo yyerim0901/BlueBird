@@ -7,7 +7,7 @@ from squaternion import Quaternion
 from nav_msgs.msg import Odometry,Path
 from math import pi,cos,sin,sqrt,atan2
 import numpy as np
-from std_msgs.msg import Bool
+from std_msgs.msg import Int16
 
 # 센서 데이터를 받아 사용하기 위함.
 from sensor_msgs.msg import LaserScan, PointCloud
@@ -34,7 +34,9 @@ class followTheCarrot(Node):
         self.subscription = self.create_subscription(Odometry,'/odom',self.odom_callback,10)
         self.status_sub = self.create_subscription(TurtlebotStatus,'/turtlebot_status',self.status_callback,10)
         self.path_sub = self.create_subscription(Path,'/local_path',self.path_callback,10)
-        self.is_working_pub = self.create_publisher(Bool,'is_working',1)
+        
+        self.working_status_sub = self.create_subscription(Int16,'/working_status',self.working_status_callback,10) # woring status 값 받고 값을 다시 담아주기 위해 사용
+        self.working_status_pub = self.create_publisher(Int16,'working_status',10) # woring status 값 받고 값을 다시 담아주기 위해 사용
         
         
 
@@ -42,15 +44,16 @@ class followTheCarrot(Node):
         time_period=0.05 
         self.timer = self.create_timer(time_period, self.timer_callback)
 
+        # 주행이 다끝나면 로직 처리 (최종 목적지 도착인 경우는 0으로만들고, 아닌 경우는 bit shift + 1)
+        self.is_finish_driving = True
         self.is_odom=False
         self.is_path=False
         self.is_status=False
         self.collision = False
-        self.is_working = Bool()
+        self.working_status_msg = Int16()
         self.odom_msg=Odometry()            
         self.robot_yaw=0.0
         # 현재 일중인지 publish 할 것
-        self.is_working.data = False
         self.path_msg=Path()
         self.cmd_msg=Twist()
         # 로직 2. 파라미터 설정
@@ -66,7 +69,7 @@ class followTheCarrot(Node):
 
             if len(self.path_msg.poses)> 1:
                 self.is_look_forward_point= False
-                
+                self.is_finish_driving = False
                 # 로봇의 절대위치를 받아옴
                 robot_pose_x=self.status_msg.twist.angular.x
                 robot_pose_y=self.status_msg.twist.angular.y
@@ -138,25 +141,33 @@ class followTheCarrot(Node):
                     out_rad_vel= theta * 2
 
                                  
-                    self.is_working.data = True
                     self.cmd_msg.linear.x=out_vel
                     self.cmd_msg.angular.z=out_rad_vel
                     
                   
            
             else :
+                # 주행 중이다가 이곳에 도착하면 실행
+                if self.is_finish_driving == False:
+                    self.is_finish_driving = True
+                    self.working_status_msg.data = ((self.working_status_msg.data) << 1) + 1 # 비트 shift하고 + 1
+                    if(self.working_status_msg.data & 0b0000000100000000) > 0:  # 마지막에 도착한경우는 9번째 비트로 값이 올라옴 
+                        self.working_status_msg.data = 0
+                    
+
                 print("no found forward point")
-                self.is_working.data = False
                 self.cmd_msg.linear.x=0.0
                 self.cmd_msg.angular.z=0.0
 
             
             self.cmd_pub.publish(self.cmd_msg)
-            self.is_working_pub.publish(self.is_working)
+            self.working_status_pub.publish(self.working_status_msg)
 
  
     
           
+    def working_status_callback(self,msg):
+        self.working_status_msg = msg
 
     def odom_callback(self, msg):
         self.is_odom=True
