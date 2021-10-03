@@ -51,7 +51,11 @@ class client(Node):
             elif data['stuff']['name'] == '물':
                 conn.want_stuff = 3
                 print("물로 넣음")
-            self.working_status_msg.data = 0b1
+            # original test
+            # self.working_status_msg.data = 0b1
+            
+            # tf_test
+            self.working_status_msg.data = 0b111
             self.working_status_pub.publish(self.working_status_msg)
 
 

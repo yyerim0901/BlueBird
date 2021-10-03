@@ -33,9 +33,13 @@ class connection(Node):
         self.working_status_pub = self.create_publisher(Int16,'working_status',10)
         self.want_stuff_pub = self.create_publisher(Int8,'want_stuff',10)
 
+        thread = threading.Thread(target=self.status_pub_timer)
+        thread.daemon = True 
+        thread.start() 
+
         # 목표지점이 변경 될 때마다 값을 읽어와야함
         self.timer = self.create_timer(1, self.goal_callback)
-        self.timer = self.create_timer(1, self.status_pub_timer)
+        self.timer = self.create_timer(0.05, self.status_pub_timer)
         self.operation={}
 
         # 심부름 로직 처리하기 위함
@@ -54,7 +58,7 @@ class connection(Node):
         self.can_go_arrival =False
         self.doing_go_arrival =False
 
-        self.want_stuff = 0
+        self.want_stuff = 1
         # mutex lock
         self.lock = threading.Lock()
 
@@ -75,7 +79,7 @@ class connection(Node):
 
         # 원하는 stuff
         self.want_stuff_msg = Int8()
-        self.want_stuff_msg.data = 0
+        self.want_stuff_msg.data = 1
 
 
         # goal_pos 재설정
@@ -132,6 +136,7 @@ class connection(Node):
 
 
     def status_pub_timer(self):
+        self.working_status_pub.publish(self.working_status_msg)
         self.want_stuff_msg.data = self.want_stuff
         self.want_stuff_pub.publish(self.want_stuff_msg)
         
