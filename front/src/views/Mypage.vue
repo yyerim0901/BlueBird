@@ -7,8 +7,8 @@
             <div class="card-body">
                 <h5 class="mp_full card-title">{{this.employee.name}}</h5>
                 <ul class="mb-5 list-group list-group-flush">
-                    <li class="list-group-item">{{this.employee.id}}</li>
-                    <li class="list-group-item">{{this.employee.job}}</li>
+                    <li class="list-group-item">사원번호 : {{this.employee.id}}</li>
+                    <li class="list-group-item">직급 : {{this.employee.job}}</li>
                     <li class="list-group-item"></li>
                 </ul>
             </div>
