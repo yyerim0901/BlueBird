@@ -21,12 +21,12 @@ import rclpy
 import os
 from rclpy.node import Node
 import time
-from sensor_msgs.msg import CompressedImage, LaserScan
+from sensor_msgs.msg import CompressedImage, LaserScan,Imu
 from ssafy_msgs.msg import BBox,TurtlebotStatus
 from std_msgs.msg import Int16,Int8
 
 import tensorflow.compat.v1 as tf
-
+from squaternion import Quaternion
 from sub2.ex_calib import *
 
 from object_detection.utils import label_map_util
@@ -76,21 +76,15 @@ params_lidar = {
 }
 
 
-params_cam = {
-    "WIDTH": 320, # image width
-    "HEIGHT": 240, # image height
-    "FOV": 60, # Field of view
-    "localIP": "127.0.0.1",
-    "localPort": 1232,
-    "Block_SIZE": int(65000),
-    "X": 0.03, # meter
-    "Y": 0.00,
-    "Z":  0.19,
+
+params_bot = {
+    "X": 0.0, # meter
+    "Y": 0.0,
+    "Z":  0.0,
     "YAW": 0.0, # deg
     "PITCH": 0.0,
     "ROLL": 0.0
 }
-
 
 class detection_net_class():
     def __init__(self, sess, graph, category_index):
@@ -181,7 +175,15 @@ def img_callback(msg):
 
 def status_callback(msg):
     global turtlebot_status_msg
+    global loc_x,loc_y,loc_z
+    global is_status
+    is_status = True
+    loc_x = msg.twist.angular.x
+    loc_y = msg.twist.angular.y
+    loc_z = 0.0
+
     turtlebot_status_msg = msg
+
 
 def scan_callback(msg):
 
@@ -206,6 +208,118 @@ def pub_timer():
     global working_status_msg
     global g_node
     working_status_pub.publish(working_status_msg)
+
+# lidar 좌표계를 bot에서의 좌표계로 변환하는 matrix
+def transformMTX_lidar2bot(params_lidar, params_bot):
+    """
+    transformMTX_lidar2cam 내 좌표 변환행렬 로직 순서
+    1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
+    2. 라이다에서 카메라 위치까지 변환하는 translation 행렬을 정의
+    3. 카메라의 자세로 맞춰주는 rotation 행렬을 정의.
+    4. 위의 두 행렬을 가지고 최종 라이다-카메라 변환 행렬을 정의.
+    """
+
+    """
+    로직 1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
+
+    """
+    global loc_x
+    global loc_y
+    global loc_z
+    lidar_yaw, lidar_pitch, lidar_roll = np.deg2rad(params_lidar["YAW"]), np.deg2rad(params_lidar["PITCH"]), np.deg2rad(params_lidar["ROLL"])
+    bot_yaw, bot_pitch, bot_roll = np.deg2rad(params_bot["YAW"]), np.deg2rad(params_bot["PITCH"]), np.deg2rad(params_bot["ROLL"])
+    
+    lidar_pos = [params_lidar["X"], params_lidar["Y"], params_lidar["Z"]]
+    bot_pos = [params_bot["X"], params_bot["Y"], params_bot["Z"]]
+
+
+ 
+    Tmtx = translationMtx(lidar_pos[0] - bot_pos[0], lidar_pos[1] - bot_pos[1], lidar_pos[2] - bot_pos[2])
+
+ 
+    Rmtx = rotationMtx(0, 0, 0)
+
+
+    RT = np.matmul(Rmtx, Tmtx)
+    
+
+    return RT
+
+# bot 좌표계를 global(map)에서의 좌표계로 변환하는 matrix
+def transformMTX_bot2map():
+    global robot_yaw
+    # 터틀봇의 위치
+    global loc_x
+    global loc_y
+    global loc_z
+
+    """
+    transformMTX_lidar2cam 내 좌표 변환행렬 로직 순서
+    1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
+    2. 라이다에서 카메라 위치까지 변환하는 translation 행렬을 정의
+    3. 카메라의 자세로 맞춰주는 rotation 행렬을 정의.
+    4. 위의 두 행렬을 가지고 최종 라이다-카메라 변환 행렬을 정의.
+    """
+
+    """
+    로직 1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
+
+    """
+
+    bot_yaw, bot_pitch, bot_roll = np.deg2rad(robot_yaw), np.deg2rad(0.0), np.deg2rad(0.0)
+    map_yaw, map_pitch, map_roll = np.deg2rad(0.0), np.deg2rad(0.0), np.deg2rad(0.0)
+    
+    bot_pos = [loc_x, loc_y, loc_z]
+    map_pos = [0.0, 0.0, 0.0]
+
+
+ 
+    Tmtx = translationMtx(bot_pos[0] - map_pos[0], bot_pos[1] - map_pos[1], bot_pos[2] - map_pos[2])
+
+ 
+    Rmtx = rotationMtx(bot_yaw, bot_pitch, bot_roll)
+
+
+    RT = np.matmul(Rmtx, Tmtx)
+    
+
+    return RT
+
+# lidar 좌표계를 bot에서의 좌표계로 변환함수
+def transform_lidar2bot(xyz_p):
+    global RT_Lidar2Bot
+
+    
+    """
+    로직. RT_Lidar2Bot로 라이다 포인트들을 터틀봇 좌표계로 변환시킨다.
+    """
+    xyz_p = np.matmul(xyz_p, RT_Lidar2Bot.T)
+    
+    return xyz_p
+
+# bot 좌표계를 map(global)에서의 좌표계로 변환함수
+def transform_bot2map(xyz_p):
+    global RT_Bot2Map
+
+    
+    """
+    로직. RT_Bot2Map로 터틀봇에서의 좌표들을 글로벌 좌표계로 변환시킨다.
+    """
+    xyz_p = np.matmul(xyz_p, RT_Bot2Map.T)
+    
+    return xyz_p
+
+def imu_callback(msg):
+    global is_imu
+    is_imu =True
+    # pass : # breck 블럭 탈출의 반대 의미. 미구현 블럭에서 들여쓰기 문제 해결할 때 쓰는것 -> 걍 무시
+    '''
+    로직 3. IMU 에서 받은 quaternion을 euler angle로 변환해서 사용  - 완료
+    '''
+    global robot_yaw
+    imu_q= Quaternion(msg.orientation.w,msg.orientation.x,msg.orientation.y,msg.orientation.z)
+    _,_,robot_yaw = imu_q.to_euler()
+
 
 def main(args=None):
 
@@ -269,6 +383,8 @@ def main(args=None):
 
     global is_working_status
     is_working_status =False
+    global is_imu
+    is_imu =False
     # 로직 5. session 생성
     # 위에 정의한 graph와 config로 세션을 생성합니다.
     sess2 = tf.Session(graph=detection_graph, config=config)
@@ -292,11 +408,19 @@ def main(args=None):
     global is_img_bgr
     is_img_bgr = False
     global is_scan
+    global is_status
+    is_status=False
     is_scan = False
     global is_want_stuff
     is_want_stuff = False
 
+    # 터틀봇의 위치
+    global loc_x
+    global loc_y
+    global loc_z
     rclpy.init(args=args)
+
+
 
     g_node = rclpy.create_node('tf_detector')
     
@@ -306,6 +430,8 @@ def main(args=None):
     
     # 로봇 절대위치 좌표
     subscription = g_node.create_subscription(TurtlebotStatus, '/turtlebot_status',status_callback, 10)
+    # 로봇의 각도를 얻기위함
+    imu_sub = g_node.create_subscription(Imu,'/imu',imu_callback,10)
 
     working_status_sub = g_node.create_subscription(Int16,'/working_status',working_status_callback,10) # woring status 값 받고 값을 다시 담아주기 위해 사용
     working_status_pub = g_node.create_publisher(Int16,'working_status',10)
@@ -331,6 +457,13 @@ def main(args=None):
 
     iter_step = 0
     is_find_object = False
+    # 좌표계 변환
+    global RT_Lidar2Bot
+    
+
+    global RT_Bot2Map
+    
+
     while rclpy.ok():
 
         time.sleep(0.05)
@@ -339,10 +472,14 @@ def main(args=None):
         for _ in range(2):
 
             rclpy.spin_once(g_node)
-        if is_img_bgr and is_working_status and is_scan and is_want_stuff:
+        if is_img_bgr and is_working_status and is_scan and is_want_stuff and is_imu and is_status:
             # 터틀 봇 위치 받음
-            loc_x = turtlebot_status_msg.twist.angular.x
-            loc_y = turtlebot_status_msg.twist.angular.y
+
+            loc_z = 0
+            print("loc")
+            print(loc_x)
+            print(loc_y)
+            loc_z = 0.0
             # 로직 10. object detection model inference
             image_process, infer_time, boxes_detect, scores, classes_pick = ssd_net.inference(img_bgr)
 
@@ -376,6 +513,8 @@ def main(args=None):
             # 인식되는 객체들중에 원하는게 있는지 확인.
             is_find_object = False
             idx = 0
+            RT_Lidar2Bot = transformMTX_lidar2bot(params_lidar, params_bot)
+            RT_Bot2Map = transformMTX_bot2map()
             for value in classes_pick[0] :
                 idx = idx + 1
                 if((int)(value) == want_stuff_msg.data):
@@ -385,7 +524,7 @@ def main(args=None):
                     if len(boxes_detect) != 0:
                         ih = img_bgr.shape[0]
                         iw = img_bgr.shape[1]
-                        print(ih)
+                        
                         boxes_np = np.array(boxes_detect[0])
                         x = boxes_np.T[1] * iw
                         y = boxes_np.T[0] * ih
@@ -397,8 +536,7 @@ def main(args=None):
                             w.astype(np.int32).tolist(),
                             h.astype(np.int32).tolist()
                         ]).T
-                        print("bbox")
-                        print(bbox)
+                        
                         
                         x = int(bbox[0, 0])
                         y = int(bbox[0, 1])
@@ -410,16 +548,20 @@ def main(args=None):
                         
                         xyv = xyii[np.logical_and(xyii[:, 0]>=x, xyii[:, 0]<=x+w), :]
                         xyv = xyv[np.logical_and(xyv[:, 1]>=y, xyv[:, 1]<=y+h), :]
-                        relative_x = xyv[2]
-                        relative_y = xyz[3]
-                        relative_z = xyz[4]
+
                         
-                        relative = np.array([relative_x, relative_y,relative_z])    
+
                         #     xyv = 
                         # print(xyv)
                         ## bbox 안에 들어가는 라이다 포인트들의 대표값(예:평균)을 뽑는다
                         ostate = np.median(xyv, axis=0)
-                        print(ostate)
+                        relative_x = ostate[2]
+                        relative_y = ostate[3]
+                        relative_z = ostate[4]
+
+                        relative = np.array([relative_x, relative_y, relative_z, 1])     # 카메라 위치로부터 객체가 x,y,z만큼 상대적으로 위치한다
+                        object_global_pose = transform_bot2map(transform_lidar2bot(relative)) # 라이다에서 측정된 객체의 상대좌표를 global(map) 좌표로 변경
+                        print(object_global_pose)
                 # print(is_find_object)    
 
                 # 로직 13. 인식된 물체의 위치 추정
