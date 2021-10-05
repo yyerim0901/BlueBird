@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
+import time
 from geometry_msgs.msg import Twist,Point,Point32
 from ssafy_msgs.msg import TurtlebotStatus
 from squaternion import Quaternion
@@ -37,8 +38,7 @@ class followTheCarrot(Node):
         
         self.working_status_sub = self.create_subscription(Int16,'/working_status',self.working_status_callback,10) # woring status 값 받고 값을 다시 담아주기 위해 사용
         self.working_status_pub = self.create_publisher(Int16,'working_status',10) # woring status 값 받고 값을 다시 담아주기 위해 사용
-        
-        
+    
 
         # 로직 1. 제어 주기 및 타이머 설정
         time_period=0.05 
@@ -63,8 +63,9 @@ class followTheCarrot(Node):
         
 
     def timer_callback(self):
+        # 가야할 때만 가는 것
 
-        if self.is_status and self.is_odom ==True and self.is_path==True:
+        if self.is_status and self.is_odom ==True and self.is_path==True and (self.working_status_msg.data == 0b0011 or self.working_status_msg.data == 0b00111111 or self.working_status_msg.data == 0b11111111):
 
 
             if len(self.path_msg.poses)> 1:
@@ -76,7 +77,7 @@ class followTheCarrot(Node):
 
                 # 로봇이 경로에서 떨어진 거리를 나타내는 변수
                 lateral_error= sqrt(pow(self.path_msg.poses[0].pose.position.x-robot_pose_x,2)+pow(self.path_msg.poses[0].pose.position.y-robot_pose_y,2))
-                print(robot_pose_x,robot_pose_y,lateral_error)
+                #print(robot_pose_x,robot_pose_y,lateral_error)
                 '''
                 로직 4. 로봇이 주어진 경로점과 떨어진 거리(lateral_error)와 로봇의 선속도를 이용해 전방주시거리 설정 - 완료
                 '''
@@ -138,21 +139,29 @@ class followTheCarrot(Node):
                     '''
 
                     out_vel = 0.3
-                    out_rad_vel= theta * 2
+                    out_rad_vel= theta * 1.1
 
                                  
                     self.cmd_msg.linear.x=out_vel
                     self.cmd_msg.angular.z=out_rad_vel
                     
-                  
+                # 주행중이다가 can lift이면 들고 멈춘 뒤 들고 state바꾸기
+                if self.status_msg.can_lift == True:
+                    print("들수있다.")
+                    self.cmd_msg.linear.x=0.0
+                    self.cmd_msg.angular.z=0.0
+                    self.working_status_msg.data = 0b01111111 # can_go_arrival
+                    self.working_status_pub.publish(self.working_status_msg)
+                    time.sleep(1)
+                    
            
             else :
-                # 주행 중이다가 이곳에 도착하면 실행
+                # 주행 중이다가 마지막 위치 도착하면 실행
                 if self.is_finish_driving == False:
+                    print("이거반복되면 안됨!!")
                     self.is_finish_driving = True
                     self.working_status_msg.data = ((self.working_status_msg.data) << 1) + 1 # 비트 shift하고 + 1
-                    if(self.working_status_msg.data & 0b0000000100000000) > 0:  # 마지막에 도착한경우는 9번째 비트로 값이 올라옴 
-                        self.working_status_msg.data = 0
+                    self.working_status_pub.publish(self.working_status_msg)
                     
 
                 print("no found forward point")
@@ -161,7 +170,6 @@ class followTheCarrot(Node):
 
             
             self.cmd_pub.publish(self.cmd_msg)
-            self.working_status_pub.publish(self.working_status_msg)
 
  
     

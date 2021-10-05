@@ -33,7 +33,7 @@ class client(Node):
             conMod_thread = threading.Thread(target=startConn, args=[conn])
             conMod_thread.daemon = True
             conMod_thread.start()
-            print('connection established')
+            # print('connection established')
 
         @self.sio.on('stuffBringToROS')
         def stuffBringStart(data):
@@ -49,10 +49,11 @@ class client(Node):
                 conn.want_stuff = 3
                 print("물로 넣음")
             # original test
-            # self.working_status_msg.data = 0b1
+            self.working_status_msg.data = 0b1
             
             # tf_test
-            self.working_status_msg.data = 0b111
+            # self.working_status_msg.data = 0b111
+     
             self.working_status_pub.publish(self.working_status_msg)
         
         @self.sio.on('env_msg_request_ros')

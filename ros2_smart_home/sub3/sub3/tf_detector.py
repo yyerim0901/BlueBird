@@ -25,6 +25,7 @@ from sensor_msgs.msg import CompressedImage, LaserScan,Imu
 from ssafy_msgs.msg import BBox,TurtlebotStatus
 from std_msgs.msg import Int16,Int8
 
+from geometry_msgs.msg import PoseStamped
 import tensorflow.compat.v1 as tf
 from squaternion import Quaternion
 from sub2.ex_calib import *
@@ -120,7 +121,7 @@ class detection_net_class():
         
         image_process = np.copy(image_np)
 
-        idx_detect = np.arange(scores.shape[1]).reshape(scores.shape)[np.where(scores>0.5)]
+        idx_detect = np.arange(scores.shape[1]).reshape(scores.shape)[np.where(scores>0.95)]
 
         boxes_detect = boxes[0, idx_detect, :]
 
@@ -169,7 +170,6 @@ def img_callback(msg):
     global img_bgr
     global is_img_bgr
     is_img_bgr =True
-    print("ccc")
     np_arr = np.frombuffer(msg.data, np.uint8)
     img_bgr = cv2.imdecode(np_arr, cv2.IMREAD_COLOR)
 
@@ -203,11 +203,11 @@ def scan_callback(msg):
         z.reshape([-1, 1])
     ], axis=1)
 
-def pub_timer():
-    global working_status_pub
-    global working_status_msg
-    global g_node
-    working_status_pub.publish(working_status_msg)
+# def pub_timer():
+#     global working_status_pub
+#     global working_status_msg
+#     global g_node
+#     working_status_pub.publish(working_status_msg)
 
 # lidar 좌표계를 bot에서의 좌표계로 변환하는 matrix
 def transformMTX_lidar2bot(params_lidar, params_bot):
@@ -346,7 +346,7 @@ def main(args=None):
     PATH_TO_LABELS = os.path.join(CWD_PATH, 'model_weights', \
         'data', 'labelmap.pbtxt')
 
-    NUM_CLASSES = 90
+    NUM_CLASSES = 3
 
     # Loading label map
     label_map = label_map_util.load_labelmap(PATH_TO_LABELS)
@@ -438,10 +438,13 @@ def main(args=None):
     want_stuff_sub = g_node.create_subscription(Int8,'/want_stuff', want_stuff_callback, 10) # 찾으려는 물건 값을 받기 위해 사용
     subscription_scan = g_node.create_subscription(LaserScan, '/scan', scan_callback, 3)
     subscription_img = g_node.create_subscription(CompressedImage, '/image_jpeg/compressed', img_callback, 10)
+    
+    # 객체 위치로 goal_pos 재설정
+    goal_pose_pub = g_node.create_publisher(PoseStamped, 'goal_pose', 1)
 
     # 로봇 제어와 working status pub하는 타이머
-    time_period=0.05 
-    timer = g_node.create_timer(time_period, pub_timer)    
+    # time_period=0.05 
+    # timer = g_node.create_timer(time_period, pub_timer)    
     cmd_msg=Twist()
     # 절대 좌표 받기위함
     turtlebot_status_msg = TurtlebotStatus()
@@ -462,23 +465,20 @@ def main(args=None):
     
 
     global RT_Bot2Map
-    
 
     while rclpy.ok():
 
-        time.sleep(0.05)
+        
 
         # 로직 9. ros 통신을 통한 이미지 수신
         for _ in range(2):
 
             rclpy.spin_once(g_node)
-        if is_img_bgr and is_working_status and is_scan and is_want_stuff and is_imu and is_status:
+        if is_img_bgr and is_scan and is_imu and is_status and is_want_stuff and is_working_status and (working_status_msg.data == 0b0111 or working_status_msg.data == 0b1111):
             # 터틀 봇 위치 받음
-
+            print(working_status_msg.data)
+            working_status_msg.data = 0b1111 # doing_find_object
             loc_z = 0
-            print("loc")
-            print(loc_x)
-            print(loc_y)
             loc_z = 0.0
             # 로직 10. object detection model inference
             image_process, infer_time, boxes_detect, scores, classes_pick = ssd_net.inference(img_bgr)
@@ -510,17 +510,22 @@ def main(args=None):
             ## numpy array로 변환
 
             """
+
+
+
             # 인식되는 객체들중에 원하는게 있는지 확인.
             is_find_object = False
             idx = 0
             RT_Lidar2Bot = transformMTX_lidar2bot(params_lidar, params_bot)
             RT_Bot2Map = transformMTX_bot2map()
+            print("물건들")
+            print(classes_pick)
             for value in classes_pick[0] :
                 idx = idx + 1
                 if((int)(value) == want_stuff_msg.data):
                     is_find_object = True
-                    print(value, "찾음")
-
+                    #print(value, "찾음")
+                    # status 비트 바꿈
                     if len(boxes_detect) != 0:
                         ih = img_bgr.shape[0]
                         iw = img_bgr.shape[1]
@@ -561,7 +566,11 @@ def main(args=None):
 
                         relative = np.array([relative_x, relative_y, relative_z, 1])     # 카메라 위치로부터 객체가 x,y,z만큼 상대적으로 위치한다
                         object_global_pose = transform_bot2map(transform_lidar2bot(relative)) # 라이다에서 측정된 객체의 상대좌표를 global(map) 좌표로 변경
+                        print("객체위치 pub")
                         print(object_global_pose)
+
+                        # goal _pose publish
+
                 # print(is_find_object)    
 
                 # 로직 13. 인식된 물체의 위치 추정
@@ -574,19 +583,39 @@ def main(args=None):
 
                 image_process = draw_pts_img(image_process, xy_i[:, 0].astype(np.int32),
                                                 xy_i[:, 1].astype(np.int32))
-                
+            
+            # 찾지 않았으면 회전하는거
+            cmd_msg.linear.x=0.0
+            cmd_msg.angular.z=0.2
+            
 
+            # 찾았으면 상태 업데이트 하고 멈추기 후 목표점 publish 
+            if is_find_object == True:
+                cmd_msg.linear.x=0.0
+                cmd_msg.angular.z=0.0
+                cmd_pub.publish(cmd_msg)
+                if working_status_msg.data == 0b01111: # doing find object
+                    print("can_go_object")
+                    working_status_msg.data = 0b0111111 # can go object생략하고 doing go object로 변경
+                    goal_location = PoseStamped()
+                    goal_location.header.frame_id = 'map'
+                    goal_location.pose.position.x = float(object_global_pose[0])
+                    goal_location.pose.position.y = float(object_global_pose[1])
+                    goal_location.pose.orientation.w = 0.0
+                    goal_pose_pub.publish(goal_location)
+                    print(working_status_msg.data)
+                    working_status_pub.publish(working_status_msg)
+
+            else: #못찾은 경우 
+                working_status_msg.data == 0b01111
+                working_status_pub.publish(working_status_msg)
             visualize_images(image_process, infer_time)
             print(is_working_status)
-            # can_find_object(0b0111)일 때, 심부름에서 회전하며 물건찾기 - object 못찾은 경우만 터틀 봇이 돌아감 -> doing_find_object(0b1111)
-            # if is_working_status and working_status_msg.data == 0b0111:
-            #     working_status_msg.data = 0b1111
-            #     cmd_msg.linear.x = 0.0
-            #     cmd_msg.angular.z = 0.5
-            #     cmd_pub.publish(cmd_msg)
+        
+        if working_status_msg.data == 0b1111 and is_find_object == False:
+            cmd_pub.publish(cmd_msg)
 
-            # # doing_find 하다가 찾은 경우 목적지 찾기
-            # if is_find_object and working_status_msg.data = 0b1111
+        
 
 
     g_node.destroy_node()

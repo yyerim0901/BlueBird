@@ -22,28 +22,21 @@ class connection(Node):
     def __init__(self):
         super().__init__('connection')
         print("connection_node_setting")
-        # 환경 정보
-        self.env_sub = self.create_subscription(EnviromentStatus, '/envir_status', self.envir_callback, 10)
-        self.env_data ={"day": 0, "hour": 0, "minute": 0, "month": 0, "temperature": 0, "weather": ""}
-    
-        # 로봇 절대위치 좌표
-        self.subscription = self.create_subscription(TurtlebotStatus, '/turtlebot_status', self.listener_callback, 10)
 
-        self.working_status_sub = self.create_subscription(Int16,'/working_status',self.working_status_callback,10) # woring status 값 받고 값을 다시 담아주기 위해 사용
-        self.working_status_pub = self.create_publisher(Int16,'working_status',10)
-        self.want_stuff_pub = self.create_publisher(Int8,'want_stuff',10)
+        self.env_data ={"day": 0, "hour": 0, "minute": 0, "month": 0, "temperature": 0, "weather": ""}
+        
+        self.operation={}
+        self.want_stuff = 0
+        # 로봇 절대위치 좌표
+
 
         thread = threading.Thread(target=self.status_pub_timer)
         thread.daemon = True 
         thread.start() 
 
-        # 목표지점이 변경 될 때마다 값을 읽어와야함
-        self.timer = self.create_timer(1, self.goal_callback)
-        self.timer = self.create_timer(0.05, self.status_pub_timer)
-        self.operation={}
 
-        # 심부름 로직 처리하기 위함
-        self.turtlebot_status_pub = self.create_publisher(TurtlebotStatus,'turtlebot_status', 10)
+        
+
 
         # 터틀 봇이 일중인지 판단
         self.is_working = False
@@ -58,21 +51,23 @@ class connection(Node):
         self.can_go_arrival =False
         self.doing_go_arrival =False
 
-        self.want_stuff = 1
+        
         # mutex lock
         self.lock = threading.Lock()
 
         # 심부름 상태에 대해 컨트롤할 것
         
         # 0b 0000 0000 0000 0000 : wait status
-        # 0b 0000 0000 0000 0001 : can_go_depart
-        # 0b 0000 0000 0000 0011 : doing_go_depart
-        # 0b 0000 0000 0000 0111 : can_find_object
-        # 0b 0000 0000 0000 1111 : doing_find_object
-        # 0b 0000 0000 0001 1111 : can_go_object
-        # 0b 0000 0000 0011 1111 : doing_find_object
-        # 0b 0000 0000 0111 1111 : can_go_arrival
-        # 0b 0000 0000 1111 1111 : doing_go_arrival
+        # 0b 0000 0000 0000 0001 : can_go_depart 1
+        # 0b 0000 0000 0000 0011 : doing_go_depart 3
+        # 0b 0000 0000 0000 0111 : can_find_object 7 
+        # 0b 0000 0000 0000 1111 : doing_find_object 15
+        # 0b 0000 0000 0001 1111 : can_go_object 31
+        # 0b 0000 0000 0011 1111 : doing_go_object 63
+        # 0b 0000 0000 0111 1111 : can_go_arrival 127
+        # 0b 0000 0000 1111 1111 : doing_go_arrival 255
+        # 0b 0000 0001 1111 1111 : 내려놓기 511
+        
 
         self.working_status_msg =  Int16()
         self.working_status_msg.data = 0
@@ -80,6 +75,19 @@ class connection(Node):
         # 원하는 stuff
         self.want_stuff_msg = Int8()
         self.want_stuff_msg.data = 1
+        # 환경 정보
+        self.env_sub = self.create_subscription(EnviromentStatus, '/envir_status', self.envir_callback, 10)
+        self.subscription = self.create_subscription(TurtlebotStatus, '/turtlebot_status', self.listener_callback, 10)
+
+        self.working_status_sub = self.create_subscription(Int16,'/working_status',self.working_status_callback,10) # woring status 값 받고 값을 다시 담아주기 위해 사용
+        self.working_status_pub = self.create_publisher(Int16,'working_status',10)
+        self.want_stuff_pub = self.create_publisher(Int8,'want_stuff',10)
+
+        # 목표지점이 변경 될 때마다 값을 읽어와야함
+        self.timer = self.create_timer(1, self.goal_callback)
+        self.timer = self.create_timer(0.05, self.status_pub_timer)
+        self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
+
 
 
         # goal_pos 재설정
@@ -95,37 +103,41 @@ class connection(Node):
     # 목적지(물건있는곳, 객체, 최종 목적지) 위치를 전달 받았을 때 그 곳으로 이동하게 goal pose를 publish
     def goal_callback(self):
         # 현재 이동이라는 명령이 오면 진행
-        print("goal callback in connection")
-
-
+        # print("goal callback in connection")
+        print("operation")
+        print(self.operation)
+        print("self.working_status_msg: ", self.working_status_msg.data)
         # 각 상태에 맞게 현재 진행으로 변경
-        if self.working_status_msg.data == 0b1:
-            goal_location = PoseStamped()
-            goal_location.header.frame_id = 'map'
-            goal_location.pose.position.x = float(self.operation['depart']['x'])
-            goal_location.pose.position.y = float(self.operation['depart']['y'])
-            goal_location.pose.orientation.w = 0.0
+        if len(self.operation) != 0:
+            if self.working_status_msg.data == 0b1:
+                
+                goal_location = PoseStamped()
+                goal_location.header.frame_id = 'map'
+                goal_location.pose.position.x = float(self.operation['depart']['x'])
+                goal_location.pose.position.y = float(self.operation['depart']['y'])
+                goal_location.pose.orientation.w = 0.0
 
-            self.working_status_msg.data = (self.working_status_msg.data << 1) + 1
-            self.working_status_pub.publish(self.working_status_msg)
-            self.goal_pose_pub.publish(goal_location)
+                self.working_status_msg.data = 0b11
+                self.working_status_pub.publish(self.working_status_msg)
+                self.goal_pose_pub.publish(goal_location)
 
-        elif self.working_status_msg.data == 0b1111111:
-            goal_location = PoseStamped()
-            goal_location.header.frame_id = 'map'
-            goal_location.pose.position.x = float(self.operation['arrival']['x'])
-            goal_location.pose.position.y = float(self.operation['arrival']['y'])
-            goal_location.pose.orientation.w = 0.0
-
-            self.working_status_msg.data = (self.working_status_msg.data << 1) + 1
-            self.working_status_pub.publish(self.working_status_msg)
-            self.goal_pose_pub.publish(goal_location)
-        # 아래는 tf_detector에서 publish할 것
-        '''
-        elif self.can_go_object ==True:
-            self.can_go_object== False
-            self.doing_go_object = True
-        '''
+            elif self.working_status_msg.data == 0b11111111:
+                print("127!!")
+                goal_location = PoseStamped()
+                goal_location.header.frame_id = 'map'
+                goal_location.pose.position.x = float(self.operation['arrival']['x'])
+                goal_location.pose.position.y = float(self.operation['arrival']['y'])
+                goal_location.pose.orientation.w = 0.0
+                
+ 
+                self.goal_pose_pub.publish(goal_location) # 255publish
+            
+            # 아래는 tf_detector에서 publish할 것
+            '''
+            elif self.can_go_object ==True:
+                self.can_go_object== False
+                self.doing_go_object = True
+            '''
             
         
 
@@ -136,9 +148,9 @@ class connection(Node):
 
 
     def status_pub_timer(self):
-        self.working_status_pub.publish(self.working_status_msg)
-        self.want_stuff_msg.data = self.want_stuff
-        self.want_stuff_pub.publish(self.want_stuff_msg)
+        if len(self.operation) != 0:
+            self.want_stuff_msg.data = self.want_stuff
+            self.want_stuff_pub.publish(self.want_stuff_msg)
         
  
 def main(args=None):
