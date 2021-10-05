@@ -3,7 +3,7 @@
         <div class="row">
             <div class="col">
                 <a @click="goMain">
-                    <img class="hd_img" src="../assets/img/peace_white.png" alt="Logo"> 
+                    <img class="hd_img" src="../assets/img/logo_white.png" alt="Logo"> 
                 </a>
             </div>
             <div class="col">
@@ -14,7 +14,7 @@
             </div>
             <div class="col">
                 <a @click="goNotify" class="notification">
-                    <img class="hd_img2" src="../assets/img/bell_simple_white.png" alt="Logo"> 
+                    <img class="hd_img2" src="../assets/img/bell_white.png" alt="Logo"> 
                     <span v-show="badgeshow" class="badge">1</span>
                 </a>
                 
@@ -39,6 +39,10 @@ export default {
         }
     },
     created() {
+        const isLogin = localStorage.getItem('employee_number') || ''
+        if (isLogin == '') {
+            this.$router.push('/login')
+        }
         var check = localStorage.getItem('update');
         console.log(check)
         if(check == 'true'){
@@ -57,14 +61,14 @@ export default {
 .hd_img {
     margin-top: 10px;
     margin-left: 5px;
-    padding: 5px;
+    padding: 4px;
     width:45px;
 }
 .hd_img2 {
     margin-top : 10px;
     margin-right:5px;
-    padding : 5px;
-    width:45px;
+    padding : 8px;
+    width:100%;
 }
 .notification {
   color: white;

@@ -6,8 +6,8 @@
 const path = require('path');
 const express = require('express');
 
-// const employee_service = require('./models/Employee');
-// const device_service = require('./models/Device');
+const employee_service = require('./models/Employee');
+const device_service = require('./models/Device');
 const room_service = require('./models/Room');
 // client 경로의 폴더를 지정해줍니다.
 // const publicPath = path.join(__dirname, "/../client");
@@ -36,29 +36,63 @@ const roomName = 'team';
 io.on('connection', socket => {
     socket.join(roomName);
     console.log('connected');
-    // 로직 3. 사용자의 메시지 수신시 WebClient로 메시지 전달
-    socket.on('env_msg', (message) => {
-        console.log(message);
-        socket.to(roomName).emit('envMsg', message);
-    });
+    
+    // Login
+    socket.on('join', (data) => {
+        employee_service.loginEmployee(data).then((result) => {
+            // const loginCheck = 0
+            if (result[0]) {
+                // loginCheck = true
+                // loginCheck = result[0]['employee_number']
+                console.log(result[0]['employee_number']);
+            }
+            socket.emit('login', result)
+        })
+    })
+
+    // GetEmployee
+    socket.on('employee', (data) => {
+        console.log(data);
+        employee_service.getEmployee(data).then((result) => {
+            socket.emit('putEmployee', result)
+            console.log(result);
+        })
+    })
 
     // Vue -> Server
 
-    // 기기 제어 On
-    // data: {"room_name": , "device_name": }
-    socket.on('deviceOn', (data) => {
-        console.log(data, 'on');
-    })
+    // 가전기기 제어 (on/off)
+    // data: {"room_name": , "device_name": , "on_off":}
+    socket.on('deviceControl', async (data) => {
+        const dataToROS = {};
+        let device_result;
+        //잘못된 데이터 입력시
+        if(data.device_name === undefined || data.room_name === undefined || data.on_off === undefined || (data.on_off !== 'on' && data.on_off !== 'off' )){
+            data = null;
+        }
 
-    // 기기 제어 Off
-    // data: {"room_name": , "device_name": }
-    socket.on('deviceOff', (data) => {
-        console.log(data, 'off');
+        if(data !== null){
+            try{
+                device_result = await device_service.searchDevice(data);
+            }catch(err){
+                console.log(err);
+            }
+            
+            if(device_result !== null){
+                dataToROS['arrival'] = {
+                    'x' : device_result[0].x,
+                    'y' : device_result[0].y,
+                    'on_off' : data.on_off
+                }
+
+                socket.to(roomName).emit('deviceControlToROS', dataToROS);
+            }
+        }
     })
 
     // 심부름
     //data = {"depart": , "stuff": , "arrival": }
-    socket.on('stuffBring', (data) => {
+    socket.on('stuffBring', async (data) => {
         //console.log('목적지로 이동')
         //console.log('x,y', data)
         // 음성 명령어에서 분리
@@ -81,23 +115,17 @@ io.on('connection', socket => {
         const dataToROS = {};
 
         //console.log('search start room by name : ', command['depart']);
-        room_service.getRoom(depart).then((result) => {
 
-            console.log(result);
-            
-            if(result !== null){
-                dataToROS['depart'] = { "x": result[0].x, "y": result[0].y }
-                dataToROS['stuff'] = stuff
-                room_service.getRoom(arrival).then((result) => {
-                    var temp =  Object.values(JSON.parse(JSON.stringify(result)))
-    
-                    dataToROS['arrival'] = { "x": temp[0].x, "y": temp[0].y };
-                    
-                    console.log("ROS2(Client.py)로 보내는 데이터: ", dataToROS);
-                    socket.to(roomName).emit('stuffBringToROS', dataToROS);
-                })
-            }
-        })
+        const depart_result = await room_service.getRoom(depart);
+        const arrival_result = await room_service.getRoom(arrival);
+
+        if(depart_result !== null && arrival_result !== null){
+            dataToROS['depart'] = {"x" : depart_result[0].x, "y" : depart_result[0].y};
+            dataToROS['stuff'] = stuff;
+            dataToROS['arrival'] = {"x": arrival_result[0].x, "y" : depart_result[0].y};
+
+            socket.to(roomName).emit('stuffBringToROS', dataToROS);
+        }
     })
 
     socket.on('env_msg_request_web', () => {
@@ -110,11 +138,18 @@ io.on('connection', socket => {
         socket.to(roomName).emit('env_msg_response_web', msg);
     })
 
-    socket.on('bot_status_response', (msg)=>{
-        console.log('bot status response : ', msg);
-        
+    socket.on('bot_status_request_web', ()=>{
+        socket.to(roomName).emit('bot_status_request_ros');
+    })
+
+    socket.on('bot_status_response_ros', (msg)=>{
+        socket.to(roomName).emit('bot_status_response_ros', msg);
     })
     
+    socket.on('employee_request_web', (msg)=>{
+        socket.to(roomName).emit('employee_request_ros',msg);
+    })
+
     socket.on('disconnect', () => {
         console.log('disconnected from server');
     });

@@ -1,51 +1,62 @@
 <template>
-    <div class="mp_full container">
+    <div>
+        <Header />
         <div class="mp_full container">
-            <h5 class="main_text">000님 안녕하세요</h5>
-        </div>
-        <div class="card main_card rounded-3" style="margin-bottom:8px;">
-            <!--미니맵-->
-        </div>
-        <div class="row">
-            <div class="col container" style="padding-right:3px;">
-                <div class="card rounded-3">
-                    <!--요일-->
-                    <div class="mt-2">
-                        <img class="calendar_size" src="../assets/img/calendar.png" alt="no home">
-                        {{ date }}
-                        <span v-if="this.day == '토'" class="text-primary">({{ day }})</span>
-                        <span v-else-if="this.day == '일'" class="text-danger">({{ day }})</span>
-                        <span v-else class="text-dark">({{ day }})</span>
+            <div class="mp_full container">
+                <h5 class="main_text">{{ name }}님 안녕하세요</h5>
+            </div>
+            <div class="card main_card rounded-3" style="margin-bottom:8px;">
+                <!--미니맵-->
+            </div>
+            <div class="row">
+                <div class="col container" style="padding-right:3px;">
+                    <div class="card rounded-3">
+                        <!--요일-->
+                        <div class="mt-2">
+                            <img class="calendar_size" src="../assets/img/calendar.png" alt="no home">
+                            {{ date }}
+                            <span v-if="this.day == '토'" class="text-primary">({{ day }})</span>
+                            <span v-else-if="this.day == '일'" class="text-danger">({{ day }})</span>
+                            <span v-else class="text-dark">({{ day }})</span>
+                        </div>
+                        <div class="text-center fs-2 mb-2">
+                            {{ time }}
+                        </div>
                     </div>
-                    <div class="text-center fs-2 mb-2">
-                        {{ time }}
+                </div>
+                <div class="col" style="padding-left:3px;">
+                    <div class="card sub_card rounded-3 container px-0">
+                        <!--날씨-->
+                        <img :src="require(`@/assets/img/${weather}.png`)" class="mx-auto mt-1 p-0 img-size" v-if="weather != null" />
+                        <h4 class="text-center mb-0 mt-2">{{ temperature }}°C</h4>
                     </div>
                 </div>
             </div>
-            <div class="col" style="padding-left:3px;">
-                <div class="card sub_card rounded-3 container px-0">
-                    <!--날씨-->
-                    <img :src="require(`@/assets/img/${weather}.png`)" class="mx-auto p-0 img-size" v-if="weather != null" />
-                    <h4 class="text-center mb-0">{{ temperature }}°C</h4>
-                </div>
+            <div class="card sub2_card rounded-3" style="margin-top:8px;">
+                <!--로봇의 상태-->
             </div>
         </div>
-        <div class="card sub2_card rounded-3" style="margin-top:8px;">
-            <!--로봇의 상태-->
+        <div class="footer">
+            <Footer />
         </div>
     </div>
 </template>
 
 <script>
+import Header from "./Header.vue"
+import Footer from "./Footer.vue"
+
 export default {
     name: "Mainpage",
+    components: { Header, Footer },
     data() {
         return {
             date: null,
             time: null,
             day: null,
             weather: null,
-            temperature: null
+            temperature: null,
+            name: null
         }
     },
     created() {
@@ -68,6 +79,13 @@ export default {
         this.$socket.on('env_msg_response_web', (data) => {
             this.weather = data.weather
             this.temperature = data.temperature
+        })
+
+        const data = {'employee_number': null}
+        data["employee_number"] = localStorage.getItem('employee_number')
+        this.$socket.emit('employee', data)
+        this.$socket.on('putEmployee',(data) => {
+            this.name = data[0].name
         })
     },
     mounted() {
@@ -113,6 +131,6 @@ export default {
     width: 30%;
 }
 .img-size{
-    width: 40%;
+    width: 35%;
 }
 </style>

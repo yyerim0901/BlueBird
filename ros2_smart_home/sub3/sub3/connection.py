@@ -30,9 +30,9 @@ class connection(Node):
         # 로봇 절대위치 좌표
 
 
-        thread = threading.Thread(target=self.status_pub_timer)
-        thread.daemon = True 
-        thread.start() 
+        # thread = threading.Thread(target=self.status_pub_timer)
+        # thread.daemon = True 
+        # thread.start() 
 
 
         
