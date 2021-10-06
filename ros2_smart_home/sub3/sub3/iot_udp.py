@@ -109,14 +109,16 @@ class iot_udp(Node):
 
     def timer_callback(self):
         # print(getUDPstage(self.working_status_msg.data))
-        if self.working_status_msg.data == getUDPstage(2):
+        if self.working_status_msg.data == getUDPstage(3):
+            print('iot_udp.py : 3단계를 인식했습니다. 가전기기를 제어합니다.')
             self.scan()
             self.connect()
             if self.want_stuff_msg.data == -1: # on
                 self.control('SWITCH_ON')
             else: # off
                 self.control('SWITCH_OFF')
-            self.working_status_msg.data = getUDPstage(3)
+            self.working_status_msg.data = getUDPstage(4)
+            print('iot_upd.py : 가전기기제어를 완료했습니다. 4단계를 퍼블리시합니다.')
             self.working_status_pub.publish(self.working_status_msg)
 
     def working_status_callback(self, msg):

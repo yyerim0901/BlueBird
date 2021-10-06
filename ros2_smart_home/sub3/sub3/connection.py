@@ -70,9 +70,10 @@ class connection(Node):
         # 0b 0000 0000 1111 1111 : doing_go_arrival 255
         # 0b 0000 0001 1111 1111 : 내려놓기 511
 
-        # 0b 1111 1111 1111 1110 : 전자기기 위치로 이동해야함 1
-        # 0b 1111 1111 1111 1100 : 전자기기 켜야함 2
-        # 0b 1111 1111 1111 1000 : 전자기기 다 켯음(껏음) 0으로 돌아가야함 3
+        # 0b 1111 1111 1111 1110 : 1단계 가전기기 위치를 publish 하여 a_star가 받도록하고, 2단계로 넘어간다.
+        # 0b 1111 1111 1111 1100 : 2단계 가전기기 앞으로 다가가는 중이다. 도착하면 3단계로 넘어간다.
+        # 0b 1111 1111 1111 1000 : 3단계 가전기기를 컨트롤하여, 키거나 끈다. 그리고 4단계로 넘어간다.
+        # 0b 1111 1111 1111 0000 : 4단계 모든 프로세스가 완료됨을 인식하여 대기상태 0단계로 되돌아간다.
         
 
         self.working_status_msg =  Int16()
@@ -149,18 +150,21 @@ class connection(Node):
             #################
 
             elif self.working_status_msg.data == getUDPstage(1):
-                print('connection 객체에서 가전기기 위치로 이동하도록 합니다.')
+                print('connection.py : 1단계를 인식했습니다. 경로 생성 로직을 시작합니다.')
                 goal_location = PoseStamped()
                 goal_location.header.frame_id = 'map'
                 goal_location.pose.position.x = float(self.operation['arrival']['x'])
                 goal_location.pose.position.y = float(self.operation['arrival']['y'])
                 goal_location.pose.orientation.w = 0.0
 
-                print('connection 객체에서 가전기기 위치를 publish 합니다.')
+                print('connection.py : 가전기기 위치를 publish 합니다.')
                 self.goal_pose_pub.publish(goal_location)
+                print('connection.py : 2단계로 전환합니다.')
+                self.working_status_msg.data = getUDPstage(2)
+                self.working_status_pub.publish(self.working_status_msg)
             
-            elif self.working_status_msg.data == getUDPstage(3):
-                print('모든 명령을 마쳤습니다. 사용 가능 상태로 전환합니다.')
+            elif self.working_status_msg.data == getUDPstage(4):
+                print('connection.py : 4단계를 인식했습니다. 모든 명령을 마쳤습니다. 사용 가능 상태로 전환합니다.')
                 self.working_status_msg.data = 0
                 self.operation={}
                 self.working_status_pub.publish(self.working_status_msg)

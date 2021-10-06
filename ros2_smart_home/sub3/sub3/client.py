@@ -61,7 +61,7 @@ class client(Node):
 
         @self.sio.on('deviceControlToROS')
         def deviceOn(data):
-            print('device Control 명령이 들어왔습니다.')
+            print('clinet.py : device Control 명령이 들어왔습니다.')
 
             conn.operation = data
             
@@ -71,7 +71,7 @@ class client(Node):
                 conn.want_stuff = -2
 
             self.working_status_msg.data = getUDPstage(1)
-            print('터틀봇을 가전기기 앞으로 이동시키도록 working_status_msg를 publish 합니다.')
+            print('client.py : 1단계 working_status_msg를 publish 합니다.')
             self.working_status_pub.publish(self.working_status_msg)
             
 

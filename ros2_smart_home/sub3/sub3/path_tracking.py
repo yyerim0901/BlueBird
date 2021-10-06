@@ -160,9 +160,10 @@ class followTheCarrot(Node):
                 # 주행 중이다가 마지막 위치 도착하면 실행
                 if self.is_finish_driving == False:
                     print("이거반복되면 안됨!!")
-                    if self.working_status_msg.data == getUDPstage(1):
+                    if self.working_status_msg.data == getUDPstage(2):
+                        print('path_tracking.py : 2단계에서 목적지에 도착했습니다. 3단계를 퍼블리시합니다.')
                         self.is_finish_driving = True
-                        self.working_status_msg.data = getUDPstage(2)
+                        self.working_status_msg.data = getUDPstage(3)
                         self.working_status_pub.publish(self.working_status_msg)
                     else :
                         self.is_finish_driving = True
