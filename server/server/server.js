@@ -29,6 +29,9 @@ const port = process.env.port || 12001
 
 server.listen(port, () => {
     console.log(`listening on *:${port}`);
+    require('dns').lookup(require('os').hostname(), function (err, add, fam) {
+        console.log('addr: ' + add);
+    })
 });
 
 const roomName = 'team';
@@ -84,8 +87,10 @@ io.on('connection', socket => {
                     'y' : device_result[0].y,
                     'on_off' : data.on_off
                 }
-
-                socket.to(roomName).emit('deviceControlToROS', dataToROS);
+                
+                console.log('dataToROS : ', dataToROS);
+                // socket.to(roomName).emit('deviceControlToROS', dataToROS);
+                io.emit('deviceControlToROS', dataToROS);
             }
         }
     })

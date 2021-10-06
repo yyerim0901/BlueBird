@@ -1,6 +1,7 @@
 import rclpy
 from rclpy.node import Node
 from iot_udp import *
+from modules import *
 from ssafy_msgs.msg import TurtlebotStatus, EnviromentStatus
 import time
 import os
@@ -15,6 +16,7 @@ import base64
 from geometry_msgs.msg import Pose, PoseStamped
 from sensor_msgs.msg import CompressedImage, LaserScan
 from std_msgs.msg import Int16, Int8
+from geometry_msgs.msg import Twist
 
 
 class connection(Node):
@@ -60,13 +62,17 @@ class connection(Node):
         # 0b 0000 0000 0000 0000 : wait status
         # 0b 0000 0000 0000 0001 : can_go_depart 1
         # 0b 0000 0000 0000 0011 : doing_go_depart 3
-        # 0b 0000 0000 0000 0111 : can_find_object 7 
+        # 0b 0000 0000 0000 0111 : can_find_object 7
         # 0b 0000 0000 0000 1111 : doing_find_object 15
         # 0b 0000 0000 0001 1111 : can_go_object 31
         # 0b 0000 0000 0011 1111 : doing_go_object 63
         # 0b 0000 0000 0111 1111 : can_go_arrival 127
         # 0b 0000 0000 1111 1111 : doing_go_arrival 255
         # 0b 0000 0001 1111 1111 : 내려놓기 511
+
+        # 0b 1111 1111 1111 1110 : 전자기기 위치로 이동해야함 1
+        # 0b 1111 1111 1111 1100 : 전자기기 켜야함 2
+        # 0b 1111 1111 1111 1000 : 전자기기 다 켯음(껏음) 0으로 돌아가야함 3
         
 
         self.working_status_msg =  Int16()
@@ -133,11 +139,33 @@ class connection(Node):
                 self.goal_pose_pub.publish(goal_location) # 255publish
             
             # 아래는 tf_detector에서 publish할 것
-            '''
-            elif self.can_go_object ==True:
-                self.can_go_object== False
-                self.doing_go_object = True
-            '''
+            
+            # elif self.can_go_object ==True:
+            #     self.can_go_object== False
+            #     self.doing_go_object = True
+            
+            #################
+            # UDP 통신 부분 #
+            #################
+
+            elif self.working_status_msg.data == getUDPstage(1):
+                print('connection 객체에서 가전기기 위치로 이동하도록 합니다.')
+                goal_location = PoseStamped()
+                goal_location.header.frame_id = 'map'
+                goal_location.pose.position.x = float(self.operation['arrival']['x'])
+                goal_location.pose.position.y = float(self.operation['arrival']['y'])
+                goal_location.pose.orientation.w = 0.0
+
+                print('connection 객체에서 가전기기 위치를 publish 합니다.')
+                self.goal_pose_pub.publish(goal_location)
+            
+            elif self.working_status_msg.data == getUDPstage(3):
+                print('모든 명령을 마쳤습니다. 사용 가능 상태로 전환합니다.')
+                self.working_status_msg.data = 0
+                self.operation={}
+                self.working_status_pub.publish(self.working_status_msg)
+
+            
             
         
 

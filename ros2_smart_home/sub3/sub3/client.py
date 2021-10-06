@@ -3,6 +3,7 @@ import threading
 import rclpy
 from rclpy.node import Node
 from connection import *
+from modules import *
 from geometry_msgs.msg import Twist
 from ssafy_msgs.msg import EnviromentStatus
 from std_msgs.msg import Int16, Int8
@@ -25,12 +26,16 @@ work_status = {
     0b01111111 : "복귀 하는 중"
     
 }
-
+ 
 def startConn(conn):
     rclpy.spin(conn)
     conn.destroy_node()
     rclpy.shutdown()
 
+# def startUdpConn(conn):
+#     rclpy.spin(conn)
+#     conn.destroy_node()
+#     rclpy.shutdown()
 
 class client(Node):
     
@@ -54,13 +59,21 @@ class client(Node):
             conMod_thread.start()
             # print('connection established')
 
-        @self.sio.on('deviceOnToROS')
+        @self.sio.on('deviceControlToROS')
         def deviceOn(data):
-            print('divce On ros')
+            print('device Control 명령이 들어왔습니다.')
 
-        @self.sio.on('deviceOffToROS')
-        def deviceOff(data):
-            print('divce Off ros')
+            conn.operation = data
+            
+            if data['arrival']['on_off'] == 'on':
+                conn.want_stuff = -1
+            else: # off
+                conn.want_stuff = -2
+
+            self.working_status_msg.data = getUDPstage(1)
+            print('터틀봇을 가전기기 앞으로 이동시키도록 working_status_msg를 publish 합니다.')
+            self.working_status_pub.publish(self.working_status_msg)
+            
 
         @self.sio.on('stuffBringToROS')
         def stuffBringStart(data):
