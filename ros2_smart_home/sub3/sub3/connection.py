@@ -79,6 +79,8 @@ class connection(Node):
         self.working_status_msg =  Int16()
         self.working_status_msg.data = 0
 
+        self.doneCount = 0
+
         # 원하는 stuff
         self.want_stuff_msg = Int8()
         self.want_stuff_msg.data = 1
@@ -168,6 +170,11 @@ class connection(Node):
                 self.working_status_msg.data = 0
                 self.operation={}
                 self.working_status_pub.publish(self.working_status_msg)
+
+                if self.doneCount == 0:
+                    self.doneCount = 1
+                else :
+                    self.doneCount = 0
 
             
             
