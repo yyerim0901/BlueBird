@@ -121,7 +121,7 @@ class detection_net_class():
         
         image_process = np.copy(image_np)
 
-        idx_detect = np.arange(scores.shape[1]).reshape(scores.shape)[np.where(scores>0.95)]
+        idx_detect = np.arange(scores.shape[1]).reshape(scores.shape)[np.where(scores>0.97)]
 
         boxes_detect = boxes[0, idx_detect, :]
 

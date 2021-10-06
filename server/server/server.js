@@ -127,7 +127,7 @@ io.on('connection', socket => {
         if(depart_result !== null && arrival_result !== null){
             dataToROS['depart'] = {"x" : depart_result[0].x, "y" : depart_result[0].y};
             dataToROS['stuff'] = stuff;
-            dataToROS['arrival'] = {"x": arrival_result[0].x, "y" : depart_result[0].y};
+            dataToROS['arrival'] = {"x": arrival_result[0].x, "y" : arrival_result[0].y};
 
             socket.to(roomName).emit('stuffBringToROS', dataToROS);
         }

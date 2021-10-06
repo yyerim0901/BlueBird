@@ -101,7 +101,7 @@ class astarLocalpath(Node):
                 
 
                 else :
-                    for num in range(current_waypoint,len(self.global_path_msg.poses)-3 ) :
+                    for num in range(current_waypoint,len(self.global_path_msg.poses)-6 ) :
                         tmp_pose = PoseStamped()
                         tmp_pose.pose.position.x = self.global_path_msg.poses[num].pose.position.x
                         tmp_pose.pose.position.y = self.global_path_msg.poses[num].pose.position.y
