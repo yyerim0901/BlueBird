@@ -89,7 +89,7 @@ class client(Node):
                 conn.want_stuff = 3
                 print("물로 넣음")
             # original test
-            self.working_status_msg.data = 0b1
+            self.working_status_msg.data = getCurrStage(1)
             
             # tf_test
             # self.working_status_msg.data = 0b111

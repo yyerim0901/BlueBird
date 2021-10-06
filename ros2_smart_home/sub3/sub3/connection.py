@@ -60,15 +60,15 @@ class connection(Node):
         # 심부름 상태에 대해 컨트롤할 것
         
         # 0b 0000 0000 0000 0000 : wait status
-        # 0b 0000 0000 0000 0001 : can_go_depart 1
-        # 0b 0000 0000 0000 0011 : doing_go_depart 3
-        # 0b 0000 0000 0000 0111 : can_find_object 7
-        # 0b 0000 0000 0000 1111 : doing_find_object 15
-        # 0b 0000 0000 0001 1111 : can_go_object 31
-        # 0b 0000 0000 0011 1111 : doing_go_object 63
-        # 0b 0000 0000 0111 1111 : can_go_arrival 127
-        # 0b 0000 0000 1111 1111 : doing_go_arrival 255
-        # 0b 0000 0001 1111 1111 : 내려놓기 511
+        # 0b 0000 0000 0000 0001 : 목표지점 입력으로 경로생성
+        # 0b 0000 0000 0000 0011 : 경로로 이동
+        # 0b 0000 0000 0000 0111 : 이동완료. 회전하며 물건 찾기
+        # 0b 0000 0000 0000 1111 : 물건을 찾았을 경우에 경로생성
+        # 0b 0000 0000 0001 1111 : 물건까지 이동 
+        # 0b 0000 0000 0011 1111 : 이동완료. 물건들기
+        # 0b 0000 0000 0111 1111 : 물건들기완료. 경로생성
+        # 0b 0000 0000 1111 1111 : 경로로 이동
+        # 0b 0000 0001 1111 1111 : 이동완료. 내려놓기 
 
         # 0b 1111 1111 1111 1110 : 전자기기 위치로 이동해야함 1
         # 0b 1111 1111 1111 1100 : 전자기기 켜야함 2
@@ -95,7 +95,7 @@ class connection(Node):
         self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
 
 
-
+        self.cmd_msg = Twist()
         # goal_pos 재설정
         self.goal_pose_pub = self.create_publisher(PoseStamped, 'goal_pose', 1)
 
@@ -112,10 +112,10 @@ class connection(Node):
         # print("goal callback in connection")
         print("operation")
         print(self.operation)
-        print("self.working_status_msg: ", self.working_status_msg.data)
+        print("self.working_status_msg: ", checkCurrStage(self.working_status_msg.data))
         # 각 상태에 맞게 현재 진행으로 변경
         if len(self.operation) != 0:
-            if self.working_status_msg.data == 0b1:
+            if checkCurrStage(self.working_status_msg.data) == 1:
                 
                 goal_location = PoseStamped()
                 goal_location.header.frame_id = 'map'
@@ -123,21 +123,26 @@ class connection(Node):
                 goal_location.pose.position.y = float(self.operation['depart']['y'])
                 goal_location.pose.orientation.w = 0.0
 
-                self.working_status_msg.data = 0b11
+                self.working_status_msg.data = getCurrStage(2)
                 self.working_status_pub.publish(self.working_status_msg)
                 self.goal_pose_pub.publish(goal_location)
 
-            elif self.working_status_msg.data == 0b11111111:
-                print("127!!")
+            elif checkCurrStage(self.working_status_msg.data) == 7:
+                print("목적지 찍었다.")
                 goal_location = PoseStamped()
                 goal_location.header.frame_id = 'map'
                 goal_location.pose.position.x = float(self.operation['arrival']['x'])
                 goal_location.pose.position.y = float(self.operation['arrival']['y'])
                 goal_location.pose.orientation.w = 0.0
                 
+                self.working_status_msg.data = getCurrStage(8)
+                self.working_status_pub.publish(self.working_status_msg)
+                
  
                 self.goal_pose_pub.publish(goal_location) # 255publish
             
+
+
             # 아래는 tf_detector에서 publish할 것
             
             # elif self.can_go_object ==True:
@@ -179,6 +184,13 @@ class connection(Node):
         if len(self.operation) != 0:
             self.want_stuff_msg.data = self.want_stuff
             self.want_stuff_pub.publish(self.want_stuff_msg)
+
+        if checkCurrStage(self.working_status_msg.data)  == 3: #회전하는 부분
+            print("회전 pub",self.working_status_msg.data)
+            # 찾지 않았으면 회전하는거
+            self.cmd_msg.linear.x=0.0
+            self.cmd_msg.angular.z=-0.4
+            self.cmd_pub.publish(self.cmd_msg)
         
  
 def main(args=None):
