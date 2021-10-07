@@ -24,7 +24,7 @@
                         <option disabled value="">배달할 물건을 선택해주세요.</option>
                         <option value="물">물</option>
                         <option value="서류철">서류철</option>
-                        <option value="박스">박스</option>
+                        <option value="상자">상자</option>
                     </select>
                 </div>
                 <div class="card-body">
