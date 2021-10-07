@@ -9,7 +9,7 @@ from geometry_msgs.msg import Twist
 from ssafy_msgs.msg import EnviromentStatus
 from std_msgs.msg import Int16, Int8
 
-# 심부름 상태에 대해 컨트롤할 것
+# 심부름 상태에 대해 컨트롤할 것 #
 work_status = {
     0 : "사용 가능",
     getCurrStage(1) : "물건을 가지러 가는 중입니다",
