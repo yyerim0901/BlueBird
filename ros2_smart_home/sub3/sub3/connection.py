@@ -143,8 +143,17 @@ class connection(Node):
                 
  
                 self.goal_pose_pub.publish(goal_location) # 255publish
-            
+            elif checkCurrStage(self.working_status_msg.data) == 10:
+                print('connection.py : 9단계를 인식했습니다. 모든 명령을 마쳤습니다. 사용 가능 상태로 전환합니다.')
 
+                self.working_status_msg.data = 0
+                self.operation={}
+                self.working_status_pub.publish(self.working_status_msg)
+
+                if self.doneCount == 0:
+                    self.doneCount = 1
+                else :
+                    self.doneCount = 0
 
             # 아래는 tf_detector에서 publish할 것
             
@@ -200,7 +209,7 @@ class connection(Node):
             print("회전 pub",self.working_status_msg.data)
             # 찾지 않았으면 회전하는거
             self.cmd_msg.linear.x=0.0
-            self.cmd_msg.angular.z=-0.4
+            self.cmd_msg.angular.z=-0.2
             self.cmd_pub.publish(self.cmd_msg)
         
  

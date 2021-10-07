@@ -159,6 +159,11 @@ io.on('connection', socket => {
         console.log('disconnected from server');
     });
 
+    socket.on('jobDone', (msg)=>{
+        console.log('작업하나 완료');
+        io.emit('stuffBrinfCheck', msg);
+    })
+
     // 전달받은 이미지를 jpg 파일로 저장
     socket.on('streaming', (message) => {
         socket.to(roomName).emit('sendStreaming', message);

@@ -126,7 +126,9 @@ class client(Node):
 
                 if prev != curr:
                     print('작업 하나 완료')
-                    self.sio.emit('jobDone')
+                    jd = dict()
+                    jd['data']='done'
+                    self.sio.emit('jobDone',jd)
                 prev = conn.doneCount
             time.sleep(1)
 

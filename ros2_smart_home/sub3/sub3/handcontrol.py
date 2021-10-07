@@ -75,7 +75,7 @@ class Handcontrol(Node):
                 self.hand_control_preview()
                 time.sleep(1)
                 self.hand_control_put_down()
-                self.working_status_msg.data = 0
+                self.working_status_msg.data = getCurrStage(10)
                 self.cmd_msg.linear.x=0.0
                 self.cmd_msg.angular.z=0.0
                 self.cmd_pub.publish(self.cmd_msg)
