@@ -59,7 +59,6 @@ export default {
             this.employee.department = data[0].department;
             this.employee.job = data[0].job;
         })
-            console.log(this.employee)
     },
     methods: {
         logout(){

@@ -32,7 +32,7 @@ export default {
             voiceInput: '클릭 후 명령하기',
             roomList: ['세미나', '창고', '회의', '사무', '사장'],
             deviceList: ['에어컨', 'TV', '공기 청정기'],
-            stuffList: ['박스', '물', '서류'],
+            stuffList: ['상자', '물', '서류철'],
             findDepart: false,
             findStuff: false,
             sendErrandData: {
@@ -45,11 +45,21 @@ export default {
                 'room_name': '사무',
                 'on_off': null
             },
-            commandCheck: false
+            commandCheck: false,
+            available: null,
         }
+    },
+    created() {
+        this.$socket.on('bot_status_response_web', (data) => {
+            this.available = data['available']
+        })
     },
     methods: {
         voiceRec() {
+            if (this.available != '사용가능') {
+                alert('터틀봇이 다른 명령을 수행하고 있습니다')
+                return
+            }
             this.btnCheck = false
             var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -120,7 +130,6 @@ export default {
             // Device On
             if (this.voiceInput.indexOf('켜') != -1) {
                 this.sendDeviceData['on_off'] = 'on'
-                console.log(this.sendDeviceData);
                 this.$socket.emit('deviceControl', (this.sendDeviceData))
             }
             else if (this.voiceInput.indexOf('꺼') != -1) {
@@ -188,7 +197,6 @@ export default {
                 this.sendErrandData['arrival'] = 'blueman'
                 return
             }
-            console.log(this.sendErrandData);
             this.$socket.emit('stuffBring', (this.sendErrandData))
             this.sendErrandData['depart'] = null
             this.sendErrandData['stuff'] = null

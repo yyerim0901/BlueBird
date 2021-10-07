@@ -58,11 +58,16 @@ export default {
             },
             selectvalue:"",
             showtext:false,
+            available: null,
         }
+    },
+    created() {
+        this.$socket.on('bot_status_response_web', (data) => {
+            this.available = data['available']
+        })
     },
     methods: {
         onChange(event){
-            console.log(event.target.value)
             this.selectvalue = event.target.value;
 
             switch (this.selectvalue) {
@@ -99,11 +104,19 @@ export default {
             }
         },
         on(){
+            if (this.available != '사용가능') {
+                alert('터틀봇이 다른 명령을 수행하고 있습니다')
+                return
+            }
             //상태를 받고 on 전달
             this.value['on_off'] = 'on'
             this.$socket.emit('deviceControl',this.value);
         },
         off(){
+            if (this.available != '사용가능') {
+                alert('터틀봇이 다른 명령을 수행하고 있습니다')
+                return
+            }
             this.value['on_off'] = 'off'
             this.$socket.emit('deviceControl',this.value);
         },
