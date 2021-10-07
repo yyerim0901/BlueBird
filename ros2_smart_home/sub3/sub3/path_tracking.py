@@ -146,14 +146,7 @@ class followTheCarrot(Node):
                     self.cmd_msg.linear.x=out_vel
                     self.cmd_msg.angular.z=out_rad_vel
                     
-                # 주행중이다가 can lift이면 들고 멈춘 뒤 들고 state바꾸기
-                if self.status_msg.can_lift == True:
-                    print("들수있다.")
-                    self.cmd_msg.linear.x=0.0
-                    self.cmd_msg.angular.z=0.0
-                    self.working_status_msg.data = 0b01111111 # can_go_arrival
-                    self.working_status_pub.publish(self.working_status_msg)
-                    time.sleep(1)
+ 
                     
            
             else :
@@ -166,8 +159,9 @@ class followTheCarrot(Node):
                         self.working_status_msg.data = getUDPstage(3)
                         self.working_status_pub.publish(self.working_status_msg)
                     else :
+                        print('working status = 2')
                         self.is_finish_driving = True
-                        self.working_status_msg.data = ((self.working_status_msg.data) << 1) + 1 # 비트 shift하고 + 1
+                        self.working_status_msg.data = getCurrStage(checkCurrStage(self.working_status_msg.data) + 1) # 비트 shift하고 + 1
                         self.working_status_pub.publish(self.working_status_msg)
                     
 
