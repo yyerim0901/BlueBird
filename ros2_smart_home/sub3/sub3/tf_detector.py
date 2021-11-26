@@ -34,33 +34,7 @@ from object_detection.utils import label_map_util
 from object_detection.utils import visualization_utils as vis_util
 from modules import *
 from geometry_msgs.msg import Twist
-# 설치한 tensorflow를 tf 로 import 하고,
-# object_detection api 내의 utils인 vis_util과 label_map_util도 import해서
-# ROS 통신으로 들어오는 이미지의 객체 인식 결과를 ROS message로 송신하는 노드입니다.
 
-# tf object detection node 로직 순서
-# 로직 1. tensorflow 및 object detection api 관련 utils import 
-# 로직 2. pretrained file and label map load
-# 로직 3. detection model graph 생성
-# 로직 4. gpu configuration 정의
-# 로직 5. session 생성
-# 로직 6. object detection 클래스 생성
-# 로직 7. node 및 image subscriber 생성
-# 로직 8. lidar2img 좌표 변환 클래스 정의
-# 로직 9. ros 통신을 통한 이미지 수신
-# 로직 10. object detection model inference
-# 로직 11. 라이다-카메라 좌표 변환 및 정사영
-# 로직 12. bounding box 결과 좌표 뽑기
-# 로직 13. 인식된 물체의 위치 추정
-# 로직 14. 시각화
-
-
-# 로직 1. tensorflow 및 object detection api 관련 utils import 
-## 설치한 tensorflow를 tf 로 import 하고,
-## object_detection api 내의 utils인 vis_util과 label_map_util도 
-## import합니다. 
-## 그리고 lidar scan data를 받아서 이미지에 정사영하기위해 ex_calib에 있는
-## class 들도 가져와 import 합니다.
 
 params_lidar = {
     "Range" : 90, #min & max range of lidar azimuths
@@ -89,14 +63,7 @@ params_bot = {
 
 class detection_net_class():
     def __init__(self, sess, graph, category_index):
-        
-        # 로직 6. object detector 클래스 생성
-        # 스켈레톤 코드 내에 작성되어 있는 class인  detection_net_class()는 
-        # graph와 라벨정보를 받아서 ROS2 topic 통신으로 들어온 이미지를 inference 하고
-        # bounding box를 내놓는 역할을 합니다. 
-        # TF object detection API 튜토리얼 코드를 참고했습니다.
-                 
-        #session and dir
+
         self.sess = sess
         self.detection_graph = graph
         self.category_index = category_index
@@ -203,26 +170,9 @@ def scan_callback(msg):
         z.reshape([-1, 1])
     ], axis=1)
 
-# def pub_timer():
-#     global working_status_pub
-#     global working_status_msg
-#     global g_node
-#     working_status_pub.publish(working_status_msg)
 
-# lidar 좌표계를 bot에서의 좌표계로 변환하는 matrix
 def transformMTX_lidar2bot(params_lidar, params_bot):
-    """
-    transformMTX_lidar2cam 내 좌표 변환행렬 로직 순서
-    1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
-    2. 라이다에서 카메라 위치까지 변환하는 translation 행렬을 정의
-    3. 카메라의 자세로 맞춰주는 rotation 행렬을 정의.
-    4. 위의 두 행렬을 가지고 최종 라이다-카메라 변환 행렬을 정의.
-    """
 
-    """
-    로직 1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
-
-    """
     global loc_x
     global loc_y
     global loc_z
@@ -245,7 +195,7 @@ def transformMTX_lidar2bot(params_lidar, params_bot):
 
     return RT
 
-# bot 좌표계를 global(map)에서의 좌표계로 변환하는 matrix
+
 def transformMTX_bot2map():
     global robot_yaw
     # 터틀봇의 위치
@@ -253,18 +203,6 @@ def transformMTX_bot2map():
     global loc_y
     global loc_z
 
-    """
-    transformMTX_lidar2cam 내 좌표 변환행렬 로직 순서
-    1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
-    2. 라이다에서 카메라 위치까지 변환하는 translation 행렬을 정의
-    3. 카메라의 자세로 맞춰주는 rotation 행렬을 정의.
-    4. 위의 두 행렬을 가지고 최종 라이다-카메라 변환 행렬을 정의.
-    """
-
-    """
-    로직 1. params에서 라이다와 카메라 센서들의 자세, 위치 정보를 뽑기.
-
-    """
 
     bot_yaw, bot_pitch, bot_roll = np.deg2rad(robot_yaw), np.deg2rad(0.0), np.deg2rad(0.0)
     map_yaw, map_pitch, map_roll = np.deg2rad(0.0), np.deg2rad(0.0), np.deg2rad(0.0)
@@ -285,26 +223,16 @@ def transformMTX_bot2map():
 
     return RT
 
-# lidar 좌표계를 bot에서의 좌표계로 변환함수
 def transform_lidar2bot(xyz_p):
     global RT_Lidar2Bot
 
-    
-    """
-    로직. RT_Lidar2Bot로 라이다 포인트들을 터틀봇 좌표계로 변환시킨다.
-    """
     xyz_p = np.matmul(xyz_p, RT_Lidar2Bot.T)
     
     return xyz_p
 
-# bot 좌표계를 map(global)에서의 좌표계로 변환함수
 def transform_bot2map(xyz_p):
     global RT_Bot2Map
 
-    
-    """
-    로직. RT_Bot2Map로 터틀봇에서의 좌표들을 글로벌 좌표계로 변환시킨다.
-    """
     xyz_p = np.matmul(xyz_p, RT_Bot2Map.T)
     
     return xyz_p
@@ -312,10 +240,7 @@ def transform_bot2map(xyz_p):
 def imu_callback(msg):
     global is_imu
     is_imu =True
-    # pass : # breck 블럭 탈출의 반대 의미. 미구현 블럭에서 들여쓰기 문제 해결할 때 쓰는것 -> 걍 무시
-    '''
-    로직 3. IMU 에서 받은 quaternion을 euler angle로 변환해서 사용  - 완료
-    '''
+
     global robot_yaw
     imu_q= Quaternion(msg.orientation.w,msg.orientation.x,msg.orientation.y,msg.orientation.z)
     _,_,robot_yaw = imu_q.to_euler()
@@ -323,17 +248,6 @@ def imu_callback(msg):
 
 def main(args=None):
 
-    # 로직 2. pretrained file and label map load    
-    ## 우선 스켈레톤 코드는 구글이 이미 학습시켜서 model zoo에 올린, mobilenet v1을 backbone으로 하는 
-    ## single shot detector 모델의 pretrained 파라메터인 
-    ## 'ssd_mobilenet_v1_coco_2018_01_28' 폴더 내 frozen_inference_graph.pb를 받도록 했습니다.
-    ## 현재 sub3/sub3 디렉토리 안에 model_weights 폴더를 두고, 거기에 model 폴더인 
-    ## 'ssd_mobilenet_v1_coco_11_06_2017'와 data 폴더 내 mscoco_label_map.pbtxt를
-    ## 넣어둬야 합니다    
-    
-    # pkg_path =os.getcwd()
-    # back_folder='catkin_ws\\src\\ros2_smart_home\\sub3'
-    # back_folder='Desktop\\test_ws\\src\\ssafy_smarthome\\sub3'
 
     CWD_PATH = 'C:\\Users\\multicampus\\Desktop\\IoTPJT\\ros2_smart_home\\sub3\\sub3'
     
@@ -356,10 +270,6 @@ def main(args=None):
     
     category_index = label_map_util.create_category_index(categories)
 
-    # 로직 3. detection model graph 생성
-    # tf.Graph()를 하나 생성하고, 이전에 불러들인 pretrained file 안의 뉴럴넷 파라메터들을
-    # 생성된 그래프 안에 덮어씌웁니다.    
-        # 로직 1. 제어 주기 및 타이머 설정
 
 
     detection_graph = tf.Graph()
@@ -371,10 +281,6 @@ def main(args=None):
             tf.import_graph_def(od_graph_def, name="")
 
 
-    # 로직 4. gpu configuration 정의
-    # 현재 머신에 사용되는 GPU의 memory fraction 등을 설정합니다.
-    # gpu의 memory fraction 이 너무 높으면 사용 도중 out of memory 등이 발생할 수 있습니다.
-
     config = tf.ConfigProto()
     config = tf.ConfigProto(device_count={'GPU': 1})
     config.gpu_options.per_process_gpu_memory_fraction = 0.3
@@ -385,20 +291,12 @@ def main(args=None):
     is_working_status =False
     global is_imu
     is_imu =False
-    # 로직 5. session 생성
-    # 위에 정의한 graph와 config로 세션을 생성합니다.
+
     sess2 = tf.Session(graph=detection_graph, config=config)
 
-    # 로직 6. object detection 클래스 생성
-    # detector model parameter를 load 하고 이를 세션으로 실행시켜 inference 하는 클래스를 생성합니다
     ssd_net = detection_net_class(sess2, detection_graph, category_index)
 
-    # 로직 7. node 및 image/scan subscriber 생성
-    # 이번 sub3의 스켈레톤 코드는 rclpy.Node 클래스를 쓰지 않고,
-    # rclpy.create_node()로 node를 생성한 것이 큰 특징입니다. 
-    # Tensorflow object detection model 이 종종 rclpy.Node 내의 timer callback 안에서 
-    # 잘 돌지 않는 경우가 있어서, timer 대신 외부 반복문에 Tensorflow object detection model의 
-    # inference를 하기 위함입니다    
+
 
     global g_node
     global working_status_pub
@@ -414,7 +312,6 @@ def main(args=None):
     global is_want_stuff
     is_want_stuff = False
 
-    # 터틀봇의 위치
     global loc_x
     global loc_y
     global loc_z
@@ -426,11 +323,8 @@ def main(args=None):
     
 
     cmd_pub = g_node.create_publisher(Twist, 'cmd_vel', 10)
-    # status_sub = g_node.create_subscription(TurtlebotStatus,'/turtlebot_status',status_callback,10)
-    
-    # 로봇 절대위치 좌표
+
     subscription = g_node.create_subscription(TurtlebotStatus, '/turtlebot_status',status_callback, 10)
-    # 로봇의 각도를 얻기위함
     imu_sub = g_node.create_subscription(Imu,'/imu',imu_callback,10)
 
     working_status_sub = g_node.create_subscription(Int16,'/working_status',working_status_callback,10) # woring status 값 받고 값을 다시 담아주기 위해 사용
@@ -439,28 +333,20 @@ def main(args=None):
     subscription_scan = g_node.create_subscription(LaserScan, '/scan', scan_callback, 3)
     subscription_img = g_node.create_subscription(CompressedImage, '/image_jpeg/compressed', img_callback, 10)
     
-    # 객체 위치로 goal_pos 재설정
     goal_pose_pub = g_node.create_publisher(PoseStamped, 'goal_pose', 1)
 
-    # 로봇 제어와 working status pub하는 타이머
-    # time_period=0.05 
-    # timer = g_node.create_timer(time_period, pub_timer)    
     cmd_msg=Twist()
-    # 절대 좌표 받기위함
-    turtlebot_status_msg = TurtlebotStatus()
-    # subscription_scan
 
-    # subscription_img
-    
-    # 로직 8. lidar2img 좌표 변환 클래스 정의
-    # sub2의 좌표 변환 클래스를 가져와서 정의.
+    turtlebot_status_msg = TurtlebotStatus()
+
+
+
     working_status_msg = Int16()
     want_stuff_msg =Int8()
     l2c_trans = LIDAR2CAMTransform(params_cam, params_lidar)
 
     iter_step = 0
     is_find_object = False
-    # 좌표계 변환
     global RT_Lidar2Bot
     
 
@@ -470,49 +356,24 @@ def main(args=None):
 
         
 
-        # 로직 9. ros 통신을 통한 이미지 수신
         for _ in range(2):
 
             rclpy.spin_once(g_node)
         if is_img_bgr and is_scan and is_imu and is_status and is_want_stuff and is_working_status and checkCurrStage(working_status_msg.data) == 3:
-            # 터틀 봇 위치 받음
-            # print(working_status_msg.data)
             loc_z = 0
             loc_z = 0.0
-            # 로직 10. object detection model inference
             image_process, infer_time, boxes_detect, scores, classes_pick = ssd_net.inference(img_bgr)
 
-            # 로직 11. 라이다-카메라 좌표 변환 및 정사영
-            # sub2 에서 ex_calib 에 했던 대로 라이다 포인트들을
-            # 이미지 프레임 안에 정사영시킵니다.
-            
-            # 전방 라이다만 뽑음
+
             xyz_p = xyz[np.where(xyz[:, 0]>=0)]
 
             xyz_c = l2c_trans.transform_lidar2cam(xyz_p)
-            #print('xyz_c')
-            #print(xyz_c)
             xy_i = l2c_trans.project_pts2img(xyz_c, False)
-            #print('xy_i')
-            #print(xy_i)
-            # xyii = np.concatenate([xy_i, xyz_p], axis=1)
-            # xyz_c 가 카메라에서 바라본 라이다의 x,y,z 좌 표
             xyii = np.concatenate([xy_i, xyz_p], axis=1)
-            #print('xyii')
-            #print(xyii)
-            """
-
-            # 로직 12. bounding box 결과 좌표 뽑기
-            ## boxes_detect 안에 들어가 있는 bounding box 결과들을
-            ## 좌상단 x,y와 너비 높이인 w,h 구하고, 
-            ## 본래 이미지 비율에 맞춰서 integer로 만들어
-            ## numpy array로 변환
-
-            """
 
 
 
-            # 인식되는 객체들중에 원하는게 있는지 확인.
+
             is_find_object = False
             idx = 0
             RT_Lidar2Bot = transformMTX_lidar2bot(params_lidar, params_bot)
@@ -523,8 +384,6 @@ def main(args=None):
                 idx = idx + 1
                 if((int)(value) == want_stuff_msg.data):
                     is_find_object = True
-                    #print(value, "찾음")
-                    # status 비트 바꿈
                     if len(boxes_detect) != 0:
                         ih = img_bgr.shape[0]
                         iw = img_bgr.shape[1]
@@ -555,9 +414,6 @@ def main(args=None):
 
                         
 
-                        #     xyv = 
-                        # print(xyv)
-                        ## bbox 안에 들어가는 라이다 포인트들의 대표값(예:평균)을 뽑는다
                         ostate = np.median(xyv, axis=0)
                         relative_x = ostate[2]
                         relative_y = ostate[3]
@@ -568,15 +424,6 @@ def main(args=None):
                         print("객체위치 pub")
                         print(object_global_pose)
 
-                        # goal _pose publish
-
-                # print(is_find_object)    
-
-                # 로직 13. 인식된 물체의 위치 추정
-                ## bbox가 구해졌으면, bbox 안에 들어가는 라이다 포인트 들을 구하고
-                ## 그걸로 물체의 거리를 추정할 수 있습니다.
-                
-
 
  
 
@@ -586,7 +433,6 @@ def main(args=None):
 
             
 
-            # 찾았으면 상태 업데이트 하고 멈추기 후 목표점 publish 
             if is_find_object == True:
                 print("물건 찾았다")
                 cmd_msg.linear.x=0.0

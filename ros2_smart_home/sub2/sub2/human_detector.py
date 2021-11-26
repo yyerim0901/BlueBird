@@ -7,35 +7,15 @@ from sensor_msgs.msg import CompressedImage, LaserScan
 from std_msgs.msg import Float32MultiArray
 from ssafy_msgs.msg import BBox
 
-# human detector node의 전체 로직 순서
-# 로직 1 : 노드에 필요한 publisher, subscriber, descriptor, detector 정의
-# 로직 2 : image binarization
-# 로직 3 : human detection 실행 후 bounding box 출력
-# 로직 4 : non maximum supresion으로 bounding box 정리
-# 로직 5 : bbox를 ros msg 파일에 write
-# 로직 6 : bbox를 원본 이미지에 draw
-# 로직 7 : bbox 결과 show
-# 로직 8 : bbox msg 송신
-
-# 같은 사람에게 생기는 여러 크고 작은 박스를 하나의 큰 박스로 묶는다.
 def non_maximum_supression(bboxes, threshold=0.5):
 
-    """
-    non maximum supression 로직
-    로직 1 : bounding box 크기 역순으로 sort
-    로직 2 : new_bboxes 리스트 정의 후 첫 bbox save
-    로직 3 : 기존 bbox 리스트에 첫 bbox delete
-    로직 4 : 두 bbox의 겹치는 영역을 구해서, 영역이 안 겹칠때 new_bbox로 save
-    """    
-    # 로직 1 : bounding box 크기 역순으로 sort   
+
     bboxes = sorted(bboxes, key=lambda detections: detections[3],
             reverse=True)
     new_bboxes=[]
     
-    # 로직 2 : new_bboxes 리스트 정의 후 첫 bbox save
     new_bboxes.append(bboxes[0])
     
-    # 로직 3 : 기존 bbox 리스트에 첫 bbox delete
     bboxes.pop(0)
 
     for _, bbox in enumerate(bboxes):
@@ -50,10 +30,7 @@ def non_maximum_supression(bboxes, threshold=0.5):
             y2_tl = new_bbox[1]
             y1_br = bbox[1] + bbox[3]
             y2_br = new_bbox[1] + new_bbox[3]
-            
-            """
-            # 로직 4 : 두 bbox의 겹치는 영역을 구해서, 영역이 안 겹칠때 new_bbox로 save
-            """
+
             x_overlap = 0
             y_overlap = 0
 
@@ -90,7 +67,6 @@ class HumanDetector(Node):
     def __init__(self):
         super().__init__(node_name='human_detector')
 
-        # 로직 1 : 노드에 필요한 publisher, subscriber, descriptor, detector, timer 정의
         self.subs_img = self.create_subscription(
             CompressedImage,
             '/image_jpeg/compressed',
@@ -120,25 +96,16 @@ class HumanDetector(Node):
     
         self.bbox_msg = BBox()
     
-        # 로직 2 : image grayscale conversion
         img_pre = cv2.cvtColor(self.img_bgr, cv2.COLOR_BGR2GRAY)
 
-        # 로직 3 : human detection 실행 후 bounding box 출력
         (rects_temp, _) = self.pedes_detector.detectMultiScale(img_pre, winStride=(2, 2), padding=(8, 8), scale=2)
 
         if len(rects_temp) != 0:
 
-            # 로직 4 : non maximum supression으로 bounding box 정리
             xl, yl, wl, hl = [], [], [], []
             rects = non_maximum_supression(rects_temp)
 
-            """
-    
-            # 로직 5 : bbox를 ros msg 파일에 write
 
-            ## 각 bbox의 center, width, height의 꼭지점들을 리스트에 넣어 놓고
-            ## 메세지 내 x,y,w,h에 채워넣는 방식으로 하시면 됩니다.
-           """
             for (x,y,w,h) in rects:
     
                 xl.append(int(x))
@@ -173,11 +140,7 @@ class HumanDetector(Node):
             self.bbox_msg.num_bbox = len(rects_temp)
 
 
-        """
-        로직 7 : bbox 결과 show
-        cv2.
-        cv2.waitKey(1)
-        """           
+
         cv2.imshow("detection result", img_bgr)        
         cv2.waitKey(1)
 

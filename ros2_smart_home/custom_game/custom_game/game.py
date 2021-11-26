@@ -9,49 +9,12 @@ from math import pow,sqrt,atan2,pi
 
 import time, random 
 
-# 노드 로직 순서
-# 1. publisher, subscriber, msg 생성
-# 2. turtlebot의 초기 위치 정보로 맵 영역 설정.
-# 3. turtlebot의 목적지(goal_x, goal_y) 설정
-# 4. turtlebot의 선속도, 각속도 정하기
-# 5. turtlebot이 목적지에 도착했을때 handcontrol 제어
-
-'''
-map 좌표 정보 
-◎ : 터틀봇
-↑ : 초기 위치에서 터틀봇이 바라보고 있는 방향
-    (-25,-75)      (-50,-75)       (-75, -75)
-          ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
-          ┃                           ┃
-          ┃        team1_area         ┃
-          ┃                           ┃
-          ┃          　 ↑             ┃
-(-25,-50) ┃. . . . . . ◎ . . . . . . ┃ (-75, -50)
-          ┃                           ┃
-          ┃                           ┃
-          ┃        team2_area         ┃
-          ┃                           ┃
-          ┃                           ┃
-          ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
-    (-25,-75)       (-50,-25)     (-75, -25)
-'''
-
-'''
-시작하면 서로의 진영에서 시작.
-
-custom object의 정보를 받는데 자기 진영에 있는 custom obejct 정보를 받아서 가장 가까이 있는 custom object의 x,y 를  goal_x, goal_y로 잡고 주행.
-해당위치에 거의 도달했을 때, can_lift가 True 이면, hand_control_pick_up 기능을 이용해서 custom object를 집는다.
-
-그다음 상대방 영역중 랜덤하게 좌표를 생성해서 goal_x, goal_y로 잡고 주행, 해당 좌표랑 turtlebot의 distance가 1미만이 되면, handcontrol_preview, handcontrol_put 기능을 순차적으로실행해서
-해당 위치에 custom object를 위치 시키고, 나의 영역에 있는 새로운 custom object를 새로운 goal_x, goal_y로 잡고 해당 시퀀스 반복
-'''
-
     
 class game(Node):
 
     def __init__(self):        
         super().__init__('game_test')
-        # 로직 1 : publisher, subscriber, msg 생성
+
         self.cmd_pub = self.create_publisher(Twist, 'cmd_vel', 10)
         self.hand_control = self.create_publisher(HandControl, '/hand_control', 10)                
         
@@ -72,17 +35,16 @@ class game(Node):
         self.timer = self.create_timer(time_period, self.timer_callback)   
 
     def timer_callback(self):        
-        if not self.is_set_area : self.set_area() #영역 설정
+        if not self.is_set_area : self.set_area()
 
         if self.is_status and self.is_obj :            
             
-            self.set_goal() #목적지 설정
+            self.set_goal()
             
-            self.set_cmd_vel() #선속도 각속도 정하기
+            self.set_cmd_vel()
 
-            self.use_hand_control() #handcontrol 사용             
+            self.use_hand_control()
 
-    # 로직 2 : turtlebot의 초기 위치 정보로 맵 영역 설정.
     def set_area(self):
         if self.status_msg:            
             x = self.status_msg.twist.angular.x
@@ -118,21 +80,16 @@ class game(Node):
                 }                                
 
             self.is_set_area = True
-    
-    # 로직 3 : turtlebot의 목적지(goal_x, goal_y) 설정
+
     def set_goal(self):
-        #custom object를 들고 있을 때 상대방 진영중 무작위 위치로 목적지 변경        
         if self.status_msg.can_use_hand and self.set_on_enemy_area:     
                 self.set_goal_enemy_area()            
-                
-        #custom object를 들고 있지 않을 때 아군진영의 custom object위치로 목적지 변경
+
         if not self.status_msg.can_use_hand :
             self.find_nearly_custom_object()
 
-    # 로직 4 : turtlebot의 선속도 각속도 정하기
     def set_cmd_vel(self):
-        #atan2를 이용하여 두 점간의 각도 구하기
-        #http://wiki.ros.org/turtlesim/Tutorials/Go%20to%20Goal
+
         dx = float(self.goal_x) - self.status_msg.twist.angular.x
         dy = float(self.goal_y) - self.status_msg.twist.angular.y
         K_anular = 0.5
@@ -144,14 +101,13 @@ class game(Node):
             self.cmd_msg.linear.x = 1.0
 
         dist = sqrt(pow(dx,2)+pow(dy,2))
-        #goal_x, goal_y에 근접했을 때 turtlebot 정지
+
         if dist < 1:
             self.cmd_msg.linear.x = 0.0
             self.cmd_msg.angular.z = 0.0
 
         self.cmd_pub.publish(self.cmd_msg)      
-        
-    # 로직 5 : 목적지에 도착했을때 handcontrol 제어
+
     def use_hand_control(self):
         dx = float(self.goal_x) - self.status_msg.twist.angular.x
         dy = float(self.goal_y) - self.status_msg.twist.angular.y
@@ -159,13 +115,12 @@ class game(Node):
         dist = sqrt(pow(dx,2)+pow(dy,2))  
         
         if dist < 1 :                
-            #goal_x, goal_y에 근접했을 때 handcontrol 작동(pick_up, put_down)
+
             if self.status_msg.can_use_hand:             
                 self.hand_control_put_down()
             else:
                 self.hand_control_pick_up()
 
-    #아군영역에 있는 custom object로 goal_x, goal_y 설정
     def find_nearly_custom_object(self):
         friendly_map_x1 = self.friendly_map["MAP_POINT_x1"]
         friendly_map_y1 = self.friendly_map["MAP_POINT_y1"]
@@ -180,7 +135,6 @@ class game(Node):
         min_dist = float('inf')
         nearly_object_index = -1                
 
-        #모든 object 데이터를 받아서 아군영역에있는 object중 가장 가까운 위치에 있는 object 탐색.
         for index, obj_pose in enumerate(self.object_msg.position):           
             if (obj_pose.x >= x1 and obj_pose.x <= x2) and (obj_pose.y >= y1 and obj_pose.y <= y2):
                 dx = self.status_msg.twist.angular.x - obj_pose.x 
@@ -195,11 +149,11 @@ class game(Node):
             self.goal_x = self.object_msg.position[nearly_object_index].x
             self.goal_y = self.object_msg.position[nearly_object_index].y            
 
-        else:#아군 진영에 object가 남아있지 않을 때 초기 위치로                       
+        else:
             self.goal_x = -50
             self.goal_y = -50
         
-    #적 영역 중 랜덤 좌표 생성
+
     def set_goal_enemy_area(self):
         enemy_area_x1 = self.enemy_map["MAP_POINT_x1"]
         enemy_area_y1 = self.enemy_map["MAP_POINT_y1"]

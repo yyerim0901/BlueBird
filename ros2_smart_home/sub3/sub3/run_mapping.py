@@ -15,19 +15,6 @@ import numpy as np
 import cv2
 import time
 
-# mapping node의 전체 로직 순서
-# 1. publisher, subscriber, msg 생성
-# 2. mapping 클래스 생성
-# 3. 맵의 resolution, 중심좌표, occupancy에 대한 threshold 등의 설정 받기
-# 4. laser scan 메시지 안의 ground truth pose 받기
-# 5. lidar scan 결과 수신
-# 6. map 업데이트 시작
-# 7. pose 값을 받아서 좌표변환 행렬로 정의
-# 8. laser scan 데이터 좌표 변환
-# 9. pose와 laser의 grid map index 변환
-# 10. laser scan 공간을 맵에 표시
-# 11. 업데이트 중인 map publish
-# 12. 맵 저장
 
 params_map = {
     "MAP_RESOLUTION": 0.05,
@@ -43,16 +30,7 @@ params_map = {
 def createLineIterator(P1, P2, img):
 
     print("f")
-    # Bresenham's line algorithm을 구현해서 이미지에 직선을 그리는 메소드입니다.
-    
-    # 로직 순서
-    # 1. 두 점을 있는 백터의 x, y 값과 크기 계산
-    # 2. 직선을 그릴 grid map의 픽셀 좌표를 넣을 numpy array 를 predifine
-    # 3. 직선 방향 체크
-    # 4. 수직선의 픽셀 좌표 계산
-    # 5. 수평선의 픽셀 좌표 계산
-    # 6. 대각선의 픽셀 좌표 계산
-    # 7. 맵 바깥 픽셀 좌표 삭제
+
 
    
     imageH = img.shape[0] #height
@@ -63,16 +41,7 @@ def createLineIterator(P1, P2, img):
     P2X = P2[0] #끝점 x 픽셀 좌표
     P2Y = P2[1] #끝점 y 픽셀 좌표
 
-    # 원래는 이거였는데 오타라고 생각해서 바꿈
-    # P1Y = P1[1] #시작점 y 픽셀 좌표
-    # P1X = P1[0] #시작점 x 픽셀 좌표
-    # P2X = P2[0] #끝점 y 픽셀 좌표
-    # P2Y = P2[1] #끝점 x 픽셀 좌표
-    
 
-    """
-    로직 1 : 두 점을 있는 백터의 x, y 값과 크기 계산
-    """
     dX = P2X - P1X
     dY = P2Y - P1Y
     dXa = np.abs(dX)
@@ -80,15 +49,10 @@ def createLineIterator(P1, P2, img):
     print("값")
     print(dXa)
 
-    """
-    # 로직 2 : 직선을 그릴 grid map의 픽셀 좌표를 넣을 numpy array 를 predifine
-    """
     itbuffer = np.empty(shape=(max(dYa,dXa),3))
     itbuffer.fill(np.nan)
     print(itbuffer.shape)
-    """
-    # 로직 3 : 직선 방향 체크
-    """
+
     if dY < 0:
         negY = True
     else:
@@ -99,11 +63,6 @@ def createLineIterator(P1, P2, img):
     else:
         negX = False
 
-    
-    
-    """ 
-    # 로직 4 : 수직선의 픽셀 좌표 계산
-    """   
 
     
     if P1X == P2X:        
@@ -114,9 +73,7 @@ def createLineIterator(P1, P2, img):
         # 0도 방향 쏘는 라이다
         else:
             itbuffer[:,1] = np.arange(P1Y+1,P2Y+1,step=1)
-            
-            
-    # 로직 5 : 수평선의 픽셀 좌표 계산
+
     
 
     elif P1Y == P2Y:        
@@ -151,13 +108,6 @@ def createLineIterator(P1, P2, img):
                 itbuffer[:,0] = np.arange(P1X+1,P2X+1,step=1)
             itbuffer[:,1] = (slope * (itbuffer[:,0] - P1X)).astype(int) + P1Y
 
-    
-
-    
-    """
-    로직 7 : 맵 바깥 픽셀 좌표 삭제.
-    픽셀 좌표 값 중 0이상이고 맵가로세로 값보다 작은 값들만 남기도록 하는 Logical 함수를 쓰자.
-    """
     colX = np.logical_and(0 <= itbuffer[:,0], itbuffer[:,0]<imageW) 
     colY = np.logical_and(0 <= itbuffer[:,1], itbuffer[:,1]<imageH)
 
@@ -169,15 +119,8 @@ def createLineIterator(P1, P2, img):
 
 class Mapping:
 
-    # 사용자가 정의한 맵 설정을 받아서 회색의 어레이로 초기화 시키고,
-    # 로봇의 pose와 2d 라이다 값들을 받은 다음,
-    # 라이다가 나타내는 로봇으로부터 측정된 좌표와의 직선을
-    # utils_skeleton.py에 있는 createLineIterator()로
-    # 그려가면서 맵을 채워서 저장할 수 있도록 만든 스크립트입니다.
-
     def __init__(self, params_map):
         print("Mapping start")
-        # 로직 3. 맵의 resolution, 중심좌표, occupancy에 대한 threshold 등의 설정들을 받습니다
         self.map_resolution = params_map["MAP_RESOLUTION"]
         self.map_size = np.array(params_map["MAP_SIZE"]) / self.map_resolution
         self.map_center = params_map["MAP_CENTER"]
@@ -192,22 +135,16 @@ class Mapping:
 
     def update(self, pose, laser):
         print("update start")
-        # 로직 7. pose 값을 받아서 좌표변환 행렬로 정의
         n_points = laser.shape[1]
         pose_mat = utils.xyh2mat2D(pose)
        
 
-        # 로직 8. laser scan 데이터 좌표 변환
         pose_mat = np.matmul(pose_mat,self.T_r_l)
         laser_mat = np.ones((3, n_points))
         
         laser_mat[:2, :] = laser
         
         laser_global = np.matmul(pose_mat, laser_mat)
-        """
-        로직 9. pose와 laser의 grid map index 변환
-        (#으로 주석처리된 것을 해제하고 쓰시고, 나머지 부분은 직접 완성시켜 실행하십시오)
-        """
         pose_x = (pose[0] - self.map_center[0] + (self.map_size[0]*self.map_resolution)/2) / self.map_resolution
         pose_y = (pose[1] - self.map_center[1] + (self.map_size[1]*self.map_resolution)/2) / self.map_resolution
         laser_global_x = (laser_global[0] - self.map_center[0] + (self.map_size[0]*self.map_resolution)/2) / self.map_resolution
@@ -215,37 +152,27 @@ class Mapping:
         
         print(pose_x.shape)
         print(laser_global.shape[1])
-        """
-        # 로직 10. laser scan 공간을 맵에 표시
-        # p1은 현재위치 p2는 닿은 위치
-        # 360개의 레이저 돌면서 진행 laser_global.shape[1] == 360
-        """
+
         for i in range(laser_global.shape[1]):
             p1 = np.array([pose_x, pose_y]).reshape(-1).astype(int)
             p2 = np.array([laser_global_x[i], laser_global_y[i]]).astype(int)
             print("st")
-            # line_iter = utils.createLineIterator(p1, p2, self.map) 원래이건데 오타인듯
             line_iter = createLineIterator(p1, p2, self.map)
             print("en")
-            # 라이다가 찍히는 위치와 그 사이에 칸이 없는 경우
             if (line_iter.shape[0] is 0):
                 continue
             
             avail_x = line_iter[:,0].astype(int)
             avail_y = line_iter[:,1].astype(int)
             print(self.map.shape)
-            ## Empty
             self.map[avail_y[:-1], avail_x[:-1]] = np.full(len(avail_x[:-1]),255)
         
-            ## Occupied
             self.map[avail_y[-1], avail_x[-1]] = 0
                 
 
         self.show_pose_and_points(pose, laser_global)        
 
     def __del__(self):
-        # 로직 12. 종료 시 map 저장
-        ## Ros2의 노드가 종료될 때 만들어진 맵을 저장하도록 def __del__과 save_map이 정의되어 있습니다
         self.save_map(())
 
 
@@ -286,7 +213,6 @@ class Mapper(Node):
     def __init__(self):
         super().__init__('Mapper')
         print("Mapper Start")
-        # 로직 1 : publisher, subscriber, msg 생성
         self.subscription = self.create_subscription(LaserScan,
         '/scan',self.scan_callback,10)
         self.map_pub = self.create_publisher(OccupancyGrid, '/map', 1)
@@ -314,18 +240,10 @@ class Mapper(Node):
 
 
     def scan_callback(self,msg):
-        """ 완료
-        # 로직 4 : laser scan 메시지 안의 ground truth pose 받기 - 싸피측에서 넣어준 값임
-        # Sub3 명세서 p63 로직 4 참고
-        """
         pose_x = msg.range_min
         pose_y = msg.scan_time
         heading = msg.time_increment
 
-        """ 완료
-        # 로직 5 : lidar scan 결과 수신
-        # x,y로 바꾸고 laser에 row*col을 2 * 360으로 바꿔서 넣음 
-        """
         Distance= np.array(msg.ranges, dtype=float)        
         x = np.cos(np.arange(360) * pi / 180) * Distance
         y = np.sin(np.arange(360) * pi / 180) * Distance
@@ -336,7 +254,6 @@ class Mapper(Node):
 
         
 
-        # 로직 6 : map 업데이트 실행(4,5번이 완성되면 바로 주석처리된 것을 해제하고 쓰시면 됩니다.)
         pose = np.array([[pose_x],[pose_y],[heading]])
         self.mapping.update(pose, laser)
 
@@ -350,10 +267,7 @@ class Mapper(Node):
  
             if list_map_data[0][i] <0 :
                 list_map_data[0][i]=0
- 
-        """ 완료
-        로직 11 : 업데이트 중인 map publish(#으로 주석처리된 것을 해제하고 쓰시고, 나머지 부분은 직접 완성시켜 실행하십시오)
-        """
+
         self.map_msg.header.stamp =rclpy.clock.Clock().now().to_msg()
         self.map_msg.data=list_map_data[0]
         self.map_pub.publish(self.map_msg)
@@ -362,7 +276,6 @@ class Mapper(Node):
 
 def save_map(node,file_path):
 
-    # 로직 12 : 맵 저장
     pkg_path ='C:\\Users\\multicampus\\Desktop\\IoTPJT\\ros2_smart_home\\sub3\\sub3'
     back_folder='..'
     folder_name='map'
