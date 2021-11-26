@@ -48,11 +48,6 @@ class goFront(Node):
         time_period = 0.3
         self.timer = self.create_timer(time_period, self.timer_callback)
 
-        # thread = threading.Thread(target = self.timer_callback)
-        # thread.daemon = True
-        # thread.start()
-
-        # self.sio.wait()
 
     def timer_callback(self):
         if self.env_msg != '':

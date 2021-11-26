@@ -15,19 +15,6 @@ import numpy as np
 import cv2
 import time
 
-# mapping node의 전체 로직 순서
-# 1. publisher, subscriber, msg 생성
-# 2. mapping 클래스 생성
-# 3. 맵의 resolution, 중심좌표, occupancy에 대한 threshold 등의 설정 받기
-# 4. laser scan 메시지 안의 ground truth pose 받기
-# 5. lidar scan 결과 수신
-# 6. map 업데이트 시작
-# 7. pose 값을 받아서 좌표변환 행렬로 정의
-# 8. laser scan 데이터 좌표 변환
-# 9. pose와 laser의 grid map index 변환
-# 10. laser scan 공간을 맵에 표시
-# 11. 업데이트 중인 map publish
-# 12. 맵 저장
 
 params_map = {
     "MAP_RESOLUTION": 0.05,
@@ -41,55 +28,31 @@ params_map = {
 
 
 def createLineIterator(P1, P2, img):
-    """
-    Produces and array that consists of the coordinates and intensities of each pixel in a line between two points
 
-    Parameters:
-        -P1: a numpy array that consists of the coordinate of the first point (x,y)
-        -P2: a numpy array that consists of the coordinate of the second point (x,y)
-        -img: the image being processed
+    imageH = img.shape[0]
+    imageW = img.shape[1]
+    P1Y = P1[1]
+    P1X = P1[0]
+    P2X = P2[0]
+    P2Y = P2[1]
 
-    Returns:
-        -it: a numpy array that consists of the coordinates and intensities of each pixel in the radii (shape: [numPixels, 3], row = [x,y,intensity])
-    """
-    # 로직 순서
-    # 1. 두 점을 있는 백터의 x, y 값과 크기 계산
-    # 2. 직선을 그릴 grid map의 픽셀 좌표를 넣을 numpy array 를 predifine
-    # 3. 직선 방향 체크
-    # 4. 수직선의 픽셀 좌표 계산
-    # 5. 수평선의 픽셀 좌표 계산
-    # 6. 대각선의 픽셀 좌표 계산
-    # 7. 맵 바깥 픽셀 좌표 삭제
-
-   #define local variables for readability
-    imageH = img.shape[0] #height
-    imageW = img.shape[1] #width
-    P1Y = P1[1] #시작점 y 픽셀 좌표
-    P1X = P1[0] #시작점 x 픽셀 좌표
-    P2X = P2[0] #끝점 y 픽셀 좌표
-    P2Y = P2[1] #끝점 x 픽셀 좌표
-
-    #difference and absolute difference between points
-    #used to calculate slope and relative location between points
     dX = P2X - P1X
     dY = P2Y - P1Y
     dXa = np.abs(dX)
     dYa = np.abs(dY)
 
-    #predefine numpy array for output based on distance between points
     itbuffer = np.empty(shape=(np.maximum(dYa,dXa),3),dtype=np.float32)
     itbuffer.fill(np.nan)
 
-    #Obtain coordinates along the line using a form of Bresenham's algorithm
     negY = P1Y > P2Y
     negX = P1X > P2X
-    if P1X == P2X: #vertical line segment
+    if P1X == P2X:
         itbuffer[:,0] = P1X
         if negY:
             itbuffer[:,1] = np.arange(P1Y - 1,P1Y - dYa - 1,-1)
         else:
             itbuffer[:,1] = np.arange(P1Y+1,P1Y+dYa+1)
-    elif P1Y == P2Y: #horizontal line segment
+    elif P1Y == P2Y:
         itbuffer[:,1] = P1Y
         if negX:
             itbuffer[:,0] = np.arange(P1X-1,P1X-dXa-1,-1)
@@ -112,7 +75,6 @@ def createLineIterator(P1, P2, img):
                 itbuffer[:,0] = np.arange(P1X+1,P1X+dXa+1)
             itbuffer[:,1] = (slope*(itbuffer[:,0]-P1X)).astype(np.int) + P1Y
 
-    #Remove points outside of image
     colX = itbuffer[:,0]
     colY = itbuffer[:,1]
     itbuffer = itbuffer[(colX >= 0) & (colY >=0) & (colX<imageW) & (colY<imageH)]
@@ -124,9 +86,7 @@ def createLineIterator(P1, P2, img):
 
 
 class Mapping:
-    """
-    Mapping Class
-    """
+
     def __init__(self, params_map):
         self.map_resolution = params_map["MAP_RESOLUTION"]
         self.map_size = np.array(params_map["MAP_SIZE"]) / self.map_resolution
@@ -174,8 +134,6 @@ class Mapping:
             # Occupied
             self.map[avail_y[-1], avail_x[-1]] = self.map[avail_y[-1], avail_x[-1]] - self.occu_up
 
-        # self.show_pose_and_points(pose, laser_global)        
-
     def __del__(self):
         self.save_map(())
         ㄴ
@@ -203,8 +161,6 @@ class Mapping:
         cv2.circle(map_bgr, center, 2, (0,0,255), -1)
 
         map_bgr = cv2.resize(map_bgr, dsize=(0, 0), fx=self.map_vis_resize_scale, fy=self.map_vis_resize_scale)
-        # cv2.imshow('Sample Map', map_bgr)
-        # cv2.waitKey(1)
 
 
 
