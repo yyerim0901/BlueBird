@@ -64,12 +64,22 @@ export default {
                 depart : "",
                 stuff:"",
                 arrival:"",
-            }
+            },
+            available: null
         }
+    },
+    created() {
+        this.$socket.on('bot_status_response_web', (data) => {
+            this.available = data['available']
+        })
     },
     methods: {
         goDelivery(){
             //백엔드에 배달 요청
+            if (this.available != '사용가능') {
+                alert('터틀봇이 다른 명령을 수행하고 있습니다')
+                return
+            }
             this.$socket.emit('stuffBring',this.value);
         }
     },

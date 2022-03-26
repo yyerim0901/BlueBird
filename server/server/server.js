@@ -67,20 +67,21 @@ io.on('connection', socket => {
     // 가전기기 제어 (on/off)
     // data: {"room_name": , "device_name": , "on_off":}
     socket.on('deviceControl', async (data) => {
+        console.log(data);
         const dataToROS = {};
         let device_result;
         //잘못된 데이터 입력시
         if(data.device_name === undefined || data.room_name === undefined || data.on_off === undefined || (data.on_off !== 'on' && data.on_off !== 'off' )){
             data = null;
         }
-
+        console.log(data);
         if(data !== null){
             try{
                 device_result = await device_service.searchDevice(data);
             }catch(err){
                 console.log(err);
             }
-            
+            console.log(device_result);
             if(device_result !== null){
                 dataToROS['arrival'] = {
                     'x' : device_result[0].x,
@@ -119,7 +120,7 @@ io.on('connection', socket => {
         
         const dataToROS = {};
 
-        //console.log('search start room by name : ', command['depart']);
+        console.log('search start room by name : ', command['depart']);
 
         const depart_result = await room_service.getRoom(depart);
         const arrival_result = await room_service.getRoom(arrival);
@@ -134,12 +135,12 @@ io.on('connection', socket => {
     })
 
     socket.on('env_msg_request_web', () => {
-        console.log('server get env msg req');
+        // console.log('server get env msg req');
         socket.to(roomName).emit('env_msg_request_ros');
     }); 
     
     socket.on('env_msg_response_ros', (msg)=>{
-        console.log('ros response : ', msg);
+        // console.log('ros response : ', msg);
         socket.to(roomName).emit('env_msg_response_web', msg);
     })
 
@@ -148,7 +149,7 @@ io.on('connection', socket => {
     })
 
     socket.on('bot_status_response_ros', (msg)=>{
-        socket.to(roomName).emit('bot_status_response_ros', msg);
+        socket.to(roomName).emit('bot_status_response_web', msg);
     })
     
     socket.on('employee_request_web', (msg)=>{
@@ -161,7 +162,7 @@ io.on('connection', socket => {
 
     socket.on('jobDone', (msg)=>{
         console.log('작업하나 완료');
-        io.emit('stuffBrinfCheck', msg);
+        io.emit('stuffBringCheck', msg);
     })
 
     // 전달받은 이미지를 jpg 파일로 저장

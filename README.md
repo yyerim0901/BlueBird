@@ -1,127 +1,196 @@
-## IoT제어 프로젝트
+<img src="./assets/logo.png" width="10%" align="right"/> 
 
-* 시뮬레이터 및 프로젝트 관련 파일 다운로드
-  - https://drive.google.com/drive/folders/1rp54qL31ZIoHet7A9BlvpoDCCdGVsvLK?usp=sharing
+# 파랑새
 
-(위 경로에 위치한 프로그램 및 문서는 SSAFY 과정 내에서만 사용할 수 있으며 무단 복제 및 반출, 배포를 금합니다.)
-
-
-
-## **명세서 기능 진척률**
-
-100%
+### 직장에서의 잡무를 도와주는 헬퍼 로봇
 
 
 
-## **좋았던 점, 알게된 점**
+## 목차
 
-터틀 봇에 달려있는 카메라를 다뤄 볼 수 있어서 좋았고, 앞으로 perception node에서 영상 인식에 관련된 기능들을 구현해야한다는 것을 알게됐습니다.
+1. [개요](#개요)
 
-물건을 옮기는 기능(handcontol)을 통해서 재미있는 기능을 추가할 수 있을 것 같아서 좋았습니다.
+2. [기술스택](#기술스택)
 
-주기적으로 실행할 timer_callback 함수를 thread로 실행해서 비동기로 실행하는 방법에 대해 알게됐습니다. 나중에 프로젝트에서 필요할 때 해당 부분을 참고할 수 있습니다.
-![feel1](./images/feel1.PNG)
+3. [로봇기능](#로봇기능)
 
+   `최단 경로 탐색` / `장애물 회피` / `자율 주행` /  `공간 입체 인식` 
 
+   `사람 인식` / `물건 인식` / `홈 IoT 기기 제어` / `물건 들고 내리기`
 
+4. [프로젝트 구조](#프로젝트-구조)
 
+5. [와이어프레임](#와이어프레임)
 
-#### **오일러 각, 쿼터니언 각**
+6. [DB](#DB)
 
-오일러는 알고리즘 계산시에 사용되고, 쿼터니언은 메시지에서 사용되는 것을 알게됐습니다.
+7. [사용자 인터페이스 구성](#사용자-인터페이스-구성)
 
-|          | 장점                                                         | 단점                                                         |
-| -------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 오일러   | 직관적이라서 사용자가 원하는 대로 값을 적용하고,<br />알고리즘 계산에 사용할 때 수월. | 짐벌락 문제가 나타난다.<br />연산 속도가 느리다.             |
-| 쿼터니언 | 짐벌락 문제가 나타나지 않는다.<br />연산 속도가 빠르다.      | 직관적이지 않아서 사용자가 계산이 필요할  때 사용하기 어렵다. |
+8. [참고](#참고)
 
-
-
-
-
-#### **어려웠던 점**
-
-1. create_publisher, create_subscriber 입력인자로  call_back 함수가 동작하고 msg로 값이 들어가는 원리를 이해하는 것이 어려웠습니다. 현재는 관련 api를 이해하였습니다.
-
-2. 제공된 스켈레톤 코드에는 Global path 경로점의 리스트에서 현재 로봇과 가장 가까운 점을 찾는 알고리즘이라서 경로가 겹치는 경우에 Local path가 다른 경로위의 점으로 변경되는 경우가 생겼습니다.
-   인덱스 범위 내에서 만 Local path가 선택될 수 있도록 하는 부분이 어려웠습니다. 팀원들과 소통하여 해결하였습니다.
-
-![feel2](./images/feel2.PNG)
+8. [시연 영상](#시연-영상)
 
 
 
-## 결과물
+## 개요
 
-**Req 1 ROS 메시지 통신 노드 실행**
-
-| publisher<br />![image-20210830153945555](./images/image-20210830153945555.png) |
-| ------------------------------------------------------------ |
-| **subscriber**<br />![image-20210830153926246](./images/image-20210830153926246.png)                                            **** |
-| **rqt result**<br />![req1_3](./images/req1_3.PNG)           |
-| **auto mode에서 자동으로 터틀 봇 제어**<br />![req1_5_autodrive](./images/req1_5_autodrive.PNG) |
+> ### Member
+>
+> | Name   |
+> | ------ |
+> | 김예림 |
+> | 박민상 |
+> | 신기하 |
+> | 이용직 |
+>
+> 
+>
+> ### 기획 - [Link](https://cultured-legume-5d9.notion.site/fe18afcec3e449e29c6ffcb475ba64b8)
+>
+> - IoT 기기를 통해서 전반적인 생활 패턴 편리화
+> - 홈 IoT를 넘어서 더 큰 공간에서 활용되는 IoT
+>
+> 
 
 
 
 
 
-**Req 2 IoT(로봇, 가전, 환경)의 상태, 제어 메시지 송수신**
+## 기술스택
 
-| **시뮬레이션화면**<br />![image-20210830200723439](./images/image-20210830200723439.png) |
-| ------------------------------------------------------------ |
-| **앞으로 전진**<br />![image-20210831195510458](./images/image-20210831195510458.png)<br /> |
-| **회전**<br />![image-20210831195644838](./images/image-20210831195644838.png) |
-| **Moving in the auto mode**<br />![req1_4](./images/req1_4.PNG) |
-| **가전 기기 제어 - all on **<br />![req2_1](./images/req2_1.PNG) |
-| ![req2_allon](./images/req2_allon.PNG)                       |
-| **가전 기기 제어 - all off**<br />![req2_1](./images/req2_2.PNG) |
-| ![req2_alloff](./images/req2_alloff.PNG)                     |
-| **환경 메시지 수신**<br />![req2_weather](./images/req2_weather.PNG) |
+![기술스택](./assets/기술스택.png)
 
 
 
-**Req 3 카메라 데이터 수신 및 영상처리**
-
-gray scaling
-size scaling: h = 1/2 * h, w =  1/2 * w
-
-| **이미지 변환 후 화면**<br />![req3](./images/req3.PNG) |
-| ------------------------------------------------------- |
+![기술스택2](./assets/기술스택2.png)
 
 
 
 
 
-**Req 4 Hand Control 제어 메시지 송신**
-
-| 들어 올릴 객체 생성<br />![req4_makeobject](./images/req4_makeobject.PNG) |
-| ------------------------------------------------------------ |
-| **0번 입력 시**<br />![req4_0](./images/req4_0.PNG)          |
-| **물체에 다가가서 들 수 있는 상태로 0 입력시**<br />![req4_0_canlift](./images/req4_0_canlift.PNG) |
-| **2번 입력으로 물건 들기**<br />![req4_1](./images/req4_1.PNG) |
-| **1번 입력으로 내려 놓을 수 있는지 확인 - 못내려 놓는 경우** <br />![req4_2_cannotput](./images/req4_2_cannotput.PNG) |
-| **1번 입력으로 내려 놓을 수 있는지 확인 - 내려 놓을 수 있는 경우** <br />![req4_2_canput](./images/req4_2_canput.PNG) |
-| **3번 입력으로 내려 놓기 **<br />![req4_3](./images/req4_3.PNG) |
 
 
 
-**Req 5-1 주행 기록계(Odometry를 이용한 위치 추정 및 기록)**
-
-| **로봇 위치 추정 테스트**<br />![req5_1](./images/req5_1.PNG) |
-| ------------------------------------------------------------ |
-| **테스트 결과**<br />![req5_2](./images/req5_2.PNG)          |
-| **한 바퀴 돌아서 제자리 온 경우 rviz2 화면**<br />![req5_3](./images/req5_3.PNG) |
 
 
 
-**Req 5-2 상대경로 생성**
+## 로봇기능
 
-| **상대 경로 생성 - 텍스트파일로 경로 기록**<br />![req5_6make_path_file](./images/req5_6make_path_file.PNG)<br />**상대 경로 생성 - rviz에서 global path로 확인**<br />![req5_1_global_path](./images/req5_1_global_path.PNG) |
-| ------------------------------------------------------------ |
-| **Test - 이전 위치와 현재위치의 거리 계산**<br />![req5_4make_path](./images/req5_4make_path.PNG)<br />![req5_5make_path_aws](./images/req5_5make_path_aws.PNG) |
+| 기능 | Action |
+| :----: | :------: |
+| 최단 경로 탐색 | ![path](./assets/자율주행withMap.gif) |
+|  | <b>A* 알고리즘</b>을 통해 Grid Map 내에서 최단경로를 파악<br>실내 로봇은 GPS를 사용하지 않기 때문에 로봇의 모터의 속도, 관성센서를 가지고 움직인 거리를 계산하여 위치 파악 |
+| 장애물 회피 | <img src="./assets/장애물회피.gif"/> |
+|  | 벽이나 각종 장애물과 오차 범위 만큼 거리를 두고 로봇을 이동 <br>=> 로봇이 방향 전환을 할 때 부딪히지 않도록!<br>Unity를 통해 장애물 생성 후 학습 및 알고리즘 수정 |
+| 자율 주행 | <img src="./assets/최단경로.gif"/> |
+|  | 출발지에서 목적지까지 최단 경로(전역 경로->연두색 선)를 탐색 후 경로 입력 후 이동(지역 경로->빨간색 선) |
+| 공간 입체 인식 | <img src="./assets/입체공간.gif"/> |
+|  | <b>라이다센서와 카메라 센서를 이용한 거리 측정</b><br>라이다 포인트들이 카메라 내에서 어느 위치에 해당하는지 매칭하고, 카메라 내의 픽셀 위치에 겹치는 라이다 값들로 입체 공간 인식 (좌표변환)<br>*라이다 포인트들 <=> 카메라 좌표계* |
+| 사람 인식 | <img src="./assets/사람인식.gif"/> |
+|  | <b>OpenCV</b>를 이용해 사람 인식 <br>(OpenCV내에 구현되어 있는 Descriptor인 hitogram of gradient와 support vector machine 이용) |
+| 물건 인식 | <img src="./assets/물건인식.gif"/> |
+|  | BGR 이미지의 <b>Binarization</b>을 통해 물체의 Bounding Box 좌표를 찾기 (Semantic Segmentation) |
+| 홈 기기 제어 | <img src="./assets/기기제어.gif"/> |
+|  | <b>UDP 통신</b>을 통해 로봇이 홈 IoT 기기 주변 일정 범위 안에 들어온다면 on/off 제어가 가능하도록 구현 |
+| 물건 들고 내리기 | <img src="./assets/물건들고내리기.gif" /> |
+|  | <b>메시지(Message)를 통해 제어</b><br/>로봇의 정해진 범위 내로 사물이 인식된다면 사물의 정확한 위치를 파악한 후 들기 /<br>로봇과 충돌을 방지하기 위하여 로봇에서부터 정해둔 거리만큼 먼 곳에 물건 내리기 |
 
-**Req 5-3 경로 읽어오기 및 경로 추종** 
 
-| **Local path가 잘 적용되는지 확인**<br />![req5_1_local_path](./images/req5_1_local_path.PNG)<br />**이동 시 local path가 잘 적용되는 것 확인**<br />![req5_1_local_path_move](./images/req5_1_local_path_move.PNG) |
-| ------------------------------------------------------------ |
-| **Auto mode에서 자동으로 이동 확인**<br />![req5_ing](./images/req5_ing.PNG)<br />auto mode에서 속도가 나고 global path에서 저장해 놓았던 경로로 이동하는 것 확인<br /><br />**도착 확인**<br />![req5_finish](./images/req5_finish.PNG) |
+
+[목차로 올라가기](#목차)
+
+
+
+
+
+## 프로젝트 구조
+
+```mermaid
+sequenceDiagram
+
+사용자->>Server(Node.js) : 명령
+activate Server(Node.js)
+Server(Node.js)->>ROS Robot : 명령어 분류 후 <br> ROS에 제어 명령 전달 
+activate ROS Robot
+	ROS Robot-->>Server(Node.js) : 물건을 찾지 못함
+	ROS Robot-->>Server(Node.js) : 기기를 찾지 못함
+	ROS Robot-->>Server(Node.js) : 예외적인 오류
+	Server(Node.js)-->>사용자 : 실패 알림 전달
+	ROS Robot-->>Server(Node.js) : 물건 배달 완료
+	ROS Robot-->>Server(Node.js) : 기기 제어 완료
+	deactivate ROS Robot
+	Server(Node.js)-->>사용자 : 성공 알림 전달
+
+deactivate Server(Node.js)
+```
+
+
+
+[목차로 올라가기](#목차)
+
+
+
+
+
+## 와이어프레임
+
+### [Figma Link](https://www.figma.com/file/Csc8ybWnG6QRHI02c7iKJj/%ED%8C%8C%EB%9E%91%EC%83%88-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84?node-id=0%3A1)
+
+
+
+[목차로 올라가기](#목차)
+
+
+
+## DB
+
+![ERD](./assets/ERD.png)
+
+
+
+[목차로 올라가기](#목차)
+
+
+
+
+
+## 사용자 인터페이스 구성
+
+| 기능 | View | Description |
+| :----------------: | :------------------------------------------------------------: | ------------------------------------------------------------ |
+| 로그인           | <img src="./assets/login.png" height="500px" />              | 회사 내의 IoT로 아이디(사원번호), 비밀번호는 전부 미리 주어진다고 가정 |
+| 메인 화면 (Home) | <img src="./assets/main__.png" height="500px" /> | 로봇이 다닐 수 공간, 즉 minimap 제공, 날짜, 날씨, 로봇의 현재 상태 (working or relaxing) 정보 제공 |
+| 배달 명령 화면   | <img src="./assets/delivery.png" width="50%"/><img src="./assets/delivery_click.png" width="50%"/> | 장소, 물건, 도착지점을 선택하여 기기에 명령                  |
+| 음성 명령 화면   | <img src="./assets/voice.png" width="49%"/> <img src="./assets/voice_ing.png" width="49%" /> | 중앙 버튼 클릭 후 음성으로 명령하면 기기 제어 가능           |
+| 기기 제어 화면   | <img src="./assets/control.png" height="500px" /> | 장소 선택 후 해당 장소의 기기들을 on/off 버튼을 통해 제어 가능 |
+| 마이페이지       |                                                              | 회원의 간단한 정보 확인                                      |
+| 알림페이지       | <img src="./assets/notification.png" height="500px" /> | 물건 배달 후 성공,실패 와 같은 알림 축적 ()                  |
+
+
+
+[목차로 올라가기](#목차)
+
+
+
+
+
+## 시연 영상
+
+<video width="100%" height="100%" controls="controls">
+  <source src="./assets/파랑새_시연_영상.mp4" type="video/mp4">
+</video>
+
+
+[목차로 올라가기](#목차)
+
+
+
+
+
+
+## 참고
+
+[파랑새들의 창고 Notion](https://cultured-legume-5d9.notion.site/20b03989c96e49efa1169cccee9a50bc)
+
+
 

@@ -15,7 +15,7 @@
             <div class="col">
                 <a @click="goNotify" class="notification">
                     <img class="hd_img2" src="../assets/img/bell_white.png" alt="Logo"> 
-                    <span v-show="badgeshow" class="badge">1</span>
+                    <span v-if="badgeshow == true" class="badge">1</span>
                 </a>
                 
             </div>
@@ -35,7 +35,7 @@ export default {
             this.$router.push('/notify');
         },
         goMain(){
-            this.$router.push('/main')
+            this.$router.push('/')
         }
     },
     created() {
@@ -44,15 +44,24 @@ export default {
             this.$router.push('/login')
         }
         var check = localStorage.getItem('update');
-        console.log(check)
         if(check == 'true'){
             //badge show
             this.badgeshow = true;
-            localStorage.setItem('update','false');
         }else {
             this.badgeshow = false;
-            localStorage.setItem('update','false');
         }
+    },
+    mounted() {
+        setInterval(() => {
+        var check = localStorage.getItem('update');
+
+        if(check == 'true'){
+            //badge show
+            this.badgeshow = true;
+        }else {
+            this.badgeshow = false;
+        }
+        }, 500);
     },
 }
 </script>

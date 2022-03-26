@@ -33,6 +33,7 @@ export default {
     //새로운 알림 badge추가용 data
     localStorage.setItem('update','true');
     })
+
   },
 };
 </script>

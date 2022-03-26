@@ -7,21 +7,23 @@
             </div>
             <div class="card main_card rounded-3" style="margin-bottom:8px;">
                 <!--미니맵-->
+                <h5 class="mb-0 text-center">미니맵</h5>
+                <img src="../assets/img/map.png" alt="" class="container map">
             </div>
             <div class="row">
                 <div class="col container" style="padding-right:3px;">
                     <div class="card rounded-3">
                         <!--요일-->
                         <div class="mt-2">
-                            <img class="calendar_size" src="../assets/img/calendar.png" alt="no home">
+                            <img class="calendar_size mx-1" src="../assets/img/calendar.png" alt="no home">
                             {{ date }}
                             <span v-if="this.day == '토'" class="text-primary">({{ day }})</span>
                             <span v-else-if="this.day == '일'" class="text-danger">({{ day }})</span>
                             <span v-else class="text-dark">({{ day }})</span>
                         </div>
-                        <div class="text-center fs-2 mb-2">
+                        <h4 class="text-center mb-3">
                             {{ time }}
-                        </div>
+                        </h4>
                     </div>
                 </div>
                 <div class="col" style="padding-left:3px;">
@@ -34,6 +36,15 @@
             </div>
             <div class="card sub2_card rounded-3" style="margin-top:8px;">
                 <!--로봇의 상태-->
+                <h3 class="text-center my-3">로봇의 상태</h3>
+                <div class="text-center">
+                    <h5 v-if="this.available == '사용가능'">
+                        {{ available }}
+                    </h5>
+                    <h5 v-else>
+                        {{ job }}
+                    </h5>
+                </div>
             </div>
         </div>
         <div class="footer">
@@ -56,7 +67,9 @@ export default {
             day: null,
             weather: null,
             temperature: null,
-            name: null
+            name: null,
+            available: null,
+            job: null
         }
     },
     created() {
@@ -87,6 +100,12 @@ export default {
         this.$socket.on('putEmployee',(data) => {
             this.name = data[0].name
         })
+
+        this.$socket.emit('bot_status_request_web', 'go')
+        this.$socket.on('bot_status_response_web', (data) => {
+            this.available = data['available']
+            this.job = data['job']
+        })
     },
     mounted() {
         setInterval(() => {
@@ -107,6 +126,7 @@ export default {
             this.day = day[today.getDay()]
 
             this.$socket.emit('env_msg_request_web', 'go')
+            this.$socket.emit('bot_status_request_web', 'go')
         }, 1000);
     },
 }
@@ -128,9 +148,12 @@ export default {
     height: 120px;
 }
 .calendar_size{
-    width: 30%;
+    width: 29%;
 }
 .img-size{
     width: 35%;
+}
+.map{
+    height: 190px;
 }
 </style>
