@@ -175,11 +175,10 @@ deactivate Server(Node.js)
 
 
 ## 시연 영상
-
 <video width="100%" height="100%" controls="controls">
-  <source src="./assets/파랑새_시연_영상.mp4" type="video/mp4">
+  <source src="assets/파랑새_시연_영상.mp4" type="video/mp4">
 </video>
-
+## [Video Link](https://drive.google.com/file/d/1hhkdDM_qBf8AAsYBHOHSNpAmUiBnYHq2/view?usp=sharing)
 
 [목차로 올라가기](#목차)
 
