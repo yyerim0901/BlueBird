@@ -58,11 +58,11 @@
 
 ## 기술스택
 
-![기술스택](./assets/기술스택.png)
+![기술스택](assets/기술스택.PNG)
 
 
 
-![기술스택2](./assets/기술스택2.png)
+![기술스택2](assets/기술스택2.PNG)
 
 
 
@@ -134,7 +134,7 @@ deactivate Server(Node.js)
 
 ## 와이어프레임
 
-### [Figma Link](https://www.figma.com/file/Csc8ybWnG6QRHI02c7iKJj/%ED%8C%8C%EB%9E%91%EC%83%88-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84?node-id=0%3A1)
+## [Figma Link](https://www.figma.com/file/Csc8ybWnG6QRHI02c7iKJj/%ED%8C%8C%EB%9E%91%EC%83%88-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84?node-id=0%3A1)
 
 
 
@@ -144,7 +144,7 @@ deactivate Server(Node.js)
 
 ## DB
 
-![ERD](./assets/ERD.png)
+![ERD](./assets/ERD.PNG)
 
 
 
@@ -158,13 +158,13 @@ deactivate Server(Node.js)
 
 | 기능 | View | Description |
 | :----------------: | :------------------------------------------------------------: | ------------------------------------------------------------ |
-| 로그인           | <img src="./assets/login.png" height="500px" />              | 회사 내의 IoT로 아이디(사원번호), 비밀번호는 전부 미리 주어진다고 가정 |
-| 메인 화면 (Home) | <img src="./assets/main__.png" height="500px" /> | 로봇이 다닐 수 공간, 즉 minimap 제공, 날짜, 날씨, 로봇의 현재 상태 (working or relaxing) 정보 제공 |
-| 배달 명령 화면   | <img src="./assets/delivery.png" width="50%"/><img src="./assets/delivery_click.png" width="50%"/> | 장소, 물건, 도착지점을 선택하여 기기에 명령                  |
-| 음성 명령 화면   | <img src="./assets/voice.png" width="49%"/> <img src="./assets/voice_ing.png" width="49%" /> | 중앙 버튼 클릭 후 음성으로 명령하면 기기 제어 가능           |
-| 기기 제어 화면   | <img src="./assets/control.png" height="500px" /> | 장소 선택 후 해당 장소의 기기들을 on/off 버튼을 통해 제어 가능 |
+| 로그인           | <img src="./assets/login.PNG" height="500px" />              | 회사 내의 IoT로 아이디(사원번호), 비밀번호는 전부 미리 주어진다고 가정 |
+| 메인 화면 (Home) | <img src="./assets/main__.PNG" height="500px" /> | 로봇이 다닐 수 공간, 즉 minimap 제공, 날짜, 날씨, 로봇의 현재 상태 (working or relaxing) 정보 제공 |
+| 배달 명령 화면   | <img src="./assets/delivery.PNG" width="50%"/><img src="./assets/delivery_click.PNG" width="50%"/> | 장소, 물건, 도착지점을 선택하여 기기에 명령                  |
+| 음성 명령 화면   | <img src="./assets/voice.PNG" width="49%"/> <img src="./assets/voice_ing.PNG" width="49%" /> | 중앙 버튼 클릭 후 음성으로 명령하면 기기 제어 가능           |
+| 기기 제어 화면   | <img src="./assets/control.PNG" height="500px" /> | 장소 선택 후 해당 장소의 기기들을 on/off 버튼을 통해 제어 가능 |
 | 마이페이지       |                                                              | 회원의 간단한 정보 확인                                      |
-| 알림페이지       | <img src="./assets/notification.png" height="500px" /> | 물건 배달 후 성공,실패 와 같은 알림 축적 ()                  |
+| 알림페이지       | <img src="./assets/notification.PNG" height="500px" /> | 물건 배달 후 성공,실패 와 같은 알림 축적 ()                  |
 
 
 
