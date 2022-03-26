@@ -134,7 +134,7 @@ deactivate Server(Node.js)
 
 ## 와이어프레임
 
-## [Figma Link](https://www.figma.com/file/Csc8ybWnG6QRHI02c7iKJj/%ED%8C%8C%EB%9E%91%EC%83%88-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84?node-id=0%3A1)
+### [Figma Link](https://www.figma.com/file/Csc8ybWnG6QRHI02c7iKJj/%ED%8C%8C%EB%9E%91%EC%83%88-%EC%99%80%EC%9D%B4%EC%96%B4%ED%94%84%EB%A0%88%EC%9E%84?node-id=0%3A1)
 
 
 
@@ -175,13 +175,10 @@ deactivate Server(Node.js)
 
 
 ## 시연 영상
-<video width="100%" height="100%" controls="controls">
+<!-- <video width="100%" height="100%" controls="controls">
   <source src="assets/파랑새_시연_영상.mp4" type="video/mp4">
-</video>
-## [Video Link](https://drive.google.com/file/d/1hhkdDM_qBf8AAsYBHOHSNpAmUiBnYHq2/view?usp=sharing)
-
-[목차로 올라가기](#목차)
-
+</video> -->
+### [Video Link](https://drive.google.com/file/d/1hhkdDM_qBf8AAsYBHOHSNpAmUiBnYHq2/view?usp=sharing)
 
 
 
